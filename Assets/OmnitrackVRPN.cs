@@ -17,19 +17,6 @@ class OmnitrackVRPN : MonoBehaviour
     [DllImport("OmnitrackDLL")]
     private static extern bool runIt();
 
-    /*
-    // Pointers need the unsafe keyword and allowing build of unsafe code
-    [DllImport("OmnitrackDLL")]
-    private static extern unsafe double* getPos();
-
-    [DllImport("OmnitrackDLL")]
-    private static extern unsafe double* getQuat();
-    */
-
-    // safe mode pointer
-    [DllImport("OmnitrackDLL")]
-    private static extern IntPtr getPosition();
-
     [DllImport("OmnitrackDLL")]
     private static extern double getX();
 
@@ -69,13 +56,11 @@ class OmnitrackVRPN : MonoBehaviour
     {
         //return new Vector3((float)getX(), (float)getY(), (float)getZ());
         return Vector3.zero;
-
-
-        //IntPtr pArr;
-        //bool res = getPosition(out pArr);
-        //return new Vector3((float)pArr[0], (float)getY(), (float)getZ());
     }
 
+    double timeValOfCurrTrackingMessage, timeValOfPrevTrackingMessage;
+    uint numberOfSimilarTrackingData = 0;
+    bool hasLostConnection = false;
 
     void Start()
     {
@@ -125,42 +110,33 @@ class OmnitrackVRPN : MonoBehaviour
             // and not be demanded like this
             runIt();
 
-
             // Get time difference (in seconds)
             double deltaTime = getTimeValDurationOfLastMessage() / 1000000;
+
+            timeValOfCurrTrackingMessage = deltaTime;
+            if (timeValOfCurrTrackingMessage == timeValOfPrevTrackingMessage)
+            {
+                numberOfSimilarTrackingData++;
+                if (numberOfSimilarTrackingData > 10)
+                {
+                    Debug.Log("Probably no/lost connection to Omnitrack");
+                    hasLostConnection = true;
+                }
+            }
+            else {
+                numberOfSimilarTrackingData = 0;
+                if (hasLostConnection)
+                {
+                    Debug.Log("Recovered connection to Omnitrack");
+                }
+                hasLostConnection = false;
+            }
+
+            timeValOfPrevTrackingMessage = timeValOfCurrTrackingMessage;
 
             //Debug.Log("new data at dt: " + deltaTime + " x: " + getX() + " y: " + getY() + " z: " + getZ());
 
             transform.position = new Vector3((float)getX(), (float)getY(), (float)getZ());
-
-            /*
-            //if (lastMessageSec != getTimeValSecOfLastMessage() && lastMessageUSec != getTimeValUSecOfLastMessage()) {
-            Debug.Log("time: " + getTimeValSecOfLastMessage() + " " + getTimeValUSecOfLastMessage() + " x: " + getX() + " y: " + getY() + " z: " + getZ());
-            lastMessageSec = getTimeValSecOfLastMessage();
-            lastMessageUSec = getTimeValUSecOfLastMessage();
-            */
-
-            /*
-                Debug.Log("Sec: " + lastMessageSec);
-                Debug.Log("USec: " + lastMessageUSec);
-                */
-            //}
-
-            /*
-            unsafe
-            {
-                double* pos;
-                pos = getPos();
-                Debug.Log("Pos: " + pos[0]);
-            }
-            */
-
-            /*
-            Debug.Log("Sending...");
-            int val = SendSignal_RequestToStopOmnideck();
-            Debug.Log("Sent it: " + val);
-            //SendMessage();
-                */
 
             yield return new WaitForSeconds(waitTime);
         }
