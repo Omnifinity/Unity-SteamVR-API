@@ -3,19 +3,21 @@ using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 
-class OmnitrackVRPN : MonoBehaviour
+class OmnitrackCommunication : MonoBehaviour
 {
+    // Initialize Omnitrack communication
     [DllImport("OmnitrackDLL")]
-    private static extern int init();
+    private static extern int IInitializeOmnitrack();
+
+    // Establish network connection with Omnitrack
+    [DllImport("OmnitrackDLL")]
+    private static extern int IEstablishOmnitrackCommunication(ushort serverPort, char[] trackerName);
 
     [DllImport("OmnitrackDLL")]
-    private static extern int setup();
+    private static extern int ICloseOmnitrackConnection();
 
     [DllImport("OmnitrackDLL")]
-    private static extern int cleanup();
-
-    [DllImport("OmnitrackDLL")]
-    private static extern bool runIt();
+    private static extern bool IMainloopOmnitrack();
 
     [DllImport("OmnitrackDLL")]
     private static extern double getX();
@@ -40,17 +42,17 @@ class OmnitrackVRPN : MonoBehaviour
     [DllImport("OmnitrackDLL")]
     private static extern double getTimeValDurationOfLastMessage();
 
-
+    // Send a request to Omnitrack that you'd like to stop the Omnideck
     [DllImport("OmnitrackDLL")]
-    private static extern int SendSignal_RequestToStopOmnideck();
+    private static extern int IRequestToStopOmnideck();
 
+    // Send a request to Omnitrack that you'd like to start the Omnideck
     [DllImport("OmnitrackDLL")]
-    private static extern int SendSignal_RequestToStartOmnideck();
+    private static extern int IRequestToStartOmnideck();
 
+    // Send a heartbeat to Omnitrack now and then to tell that your gime is alive
     [DllImport("OmnitrackDLL")]
-    private static extern int SendSignal_HeartbeatToOmnitrack();
-
-    IntPtr pos, rot;
+    private static extern int ISendHeartbeatToOmnitrack();
 
     Vector3 getHeadPos()
     {
@@ -62,53 +64,63 @@ class OmnitrackVRPN : MonoBehaviour
     uint numberOfSimilarTrackingData = 0;
     bool hasLostConnection = false;
 
-    void Start()
+    // Setup Omnitrack communication and various coroutines
+    virtual public void Start()
     {
-        Debug.Log("Initializing...");
-        init();
-        Debug.Log("Done");
+        // Initialize the state of Omnitrack
+        IInitializeOmnitrack();
 
-        Debug.Log("Setting up...");
-        int res;
-        res = setup();
-        Debug.Log("Result: " + res);
+        // Establish the connection
+        ushort port = 3889;
+        var trackerName = "AppToOmnitrackTracker0";
+        if (IEstablishOmnitrackCommunication(port, trackerName.ToCharArray()) == 0)
+        {
+            float desiredFps_TrackingData = 75f;
+            StartCoroutine(AcquireTrackingData(1.0f / desiredFps_TrackingData));
 
-        float desiredFps_TrackingData= 1.0f / 75f;
-        StartCoroutine(AcquireTrackingData(desiredFps_TrackingData));
-
-        StartCoroutine(SendHeartBeat());
+            StartCoroutine(SendHeartBeat());
+            Debug.Log("Successful setup of communication with Omnitrack");
+        }
+        else
+        {
+            Debug.Log("Unable to setup communication with Omnitrack");
+            Destroy(gameObject);
+        }
     }
 
-    
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            SendSignal_RequestToStartOmnideck();
+            IRequestToStartOmnideck();
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            SendSignal_RequestToStopOmnideck();
- 
+            IRequestToStopOmnideck();
         }
     }
 
-    //void OnDestroy()
-    void OnApplicationQuit()
-    {
-        Debug.Log("Cleaning up...");
-        int res = cleanup();
-        Debug.Log("Done: " + res);
+    // Shut down communication with Omnitrack
+    void OnApplicationQuit() {
+        if (ICloseOmnitrackConnection() == 0)
+        {
+            Debug.Log("Successful shutdown of ommunication with Omnitrack");
+        }
+        else
+        {
+            Debug.Log("Unable to properly shutdown ommunication with Omnitrack");
+        }
     }
 
+    // Acquire tracking data from Omnitrack
     IEnumerator AcquireTrackingData(float waitTime)
     {
         while (true)
         {
-            // TODO: This should be ran automatically internally in the library 
+            // TODO: This should be ran automatically internally in the library
             // and not be demanded like this
-            runIt();
+            IMainloopOmnitrack();
 
             // Get time difference (in seconds)
             double deltaTime = getTimeValDurationOfLastMessage() / 1000000;
@@ -133,20 +145,10 @@ class OmnitrackVRPN : MonoBehaviour
             }
 
             timeValOfPrevTrackingMessage = timeValOfCurrTrackingMessage;
-
             //Debug.Log("new data at dt: " + deltaTime + " x: " + getX() + " y: " + getY() + " z: " + getZ());
 
             transform.position = new Vector3((float)getX(), (float)getY(), (float)getZ());
 
-            yield return new WaitForSeconds(waitTime);
-        }
-    }
-
-    IEnumerator SendMessage(float waitTime)
-    {
-        while (true) {
-            Debug.Log("Send Stop Request");
-            SendSignal_RequestToStopOmnideck();
             yield return new WaitForSeconds(waitTime);
         }
     }
@@ -157,10 +159,9 @@ class OmnitrackVRPN : MonoBehaviour
         float waitTime = 1.0f;
         while (true)
         {
-            Debug.Log("Send heartbeat to Omnitrack");
-            SendSignal_HeartbeatToOmnitrack();
+            ISendHeartbeatToOmnitrack();
+            Debug.Log("Sent heartbeat to Omnitrack");
             yield return new WaitForSeconds(waitTime);
         }
     }
-
 }
