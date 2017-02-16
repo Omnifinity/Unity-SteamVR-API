@@ -21,14 +21,14 @@ If you do not use VRTK you can skip that step but you have to remove the missing
 
 *The "OmnideckPlatform" GameObject*
 
-This gameobject contains a Unity Character Controller component. It will move around based on the users physical movements on the Omnideck. This movement is calculated in our software and is sent over VRPN in the form of velocity vector. The vector is used in Unity using the "SimpleMove()" function included with the Unity Character Controller component. The vector is in [m/s].  
+This gameobject contains a Unity Character Controller component. It will move around based on the users physical movements on the Omnideck. This movement is calculated in our software and is sent over VRPN in the form of a position vector [m] (accumulated movement over time). The position vector is calculated as a velocity vector in our script and sent to the Unity "SimpleMove()" function included with the Unity Character Controller component.
 
 *The "[CameraRig]" GameObject*
 
 This gameobject is the standard SteamVR gameobject. Since this is a child to the OmnideckPlatform GameObject your controllers and camera will move around locally in relation to the CameraRig (as usual) and locally in relation to the OmnideckPlatform GameObject. You can consider this to be room-scale VR on steroids. 
 
-If the Omnideck is deactivated (e.g. the velocity vector is (0, 0, 0)) you'll have the normal room-scale VR as commonly known from the HTC Vive system.
-
 
 ## TODO
-Loads :) Apologies for the lack of documentation and an incomplete software suite at the moment.
+Loads :) 
+
+Apologies for the lack of documentation and an incomplete software suite at the moment.
