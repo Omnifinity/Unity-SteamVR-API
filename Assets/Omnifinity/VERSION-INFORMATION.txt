@@ -1,0 +1,6 @@
+Omnifinity Unity API v1.17.1-Alpha
+
+Uses:
+Unity 5.4.2f1
+VRTK 2.2.1
+SteamVR plugin for Unity v1.2.0 (uses SDK 1.0.5)
