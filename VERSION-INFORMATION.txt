@@ -1,4 +1,4 @@
-Omnifinity Unity API v1.17.1-Alpha
+Omnifinity Unity API v1.17.2-Alpha
 
 Uses:
 Unity 5.4.2f1
