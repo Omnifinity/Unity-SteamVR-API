@@ -31,7 +31,7 @@ If you run the executable without any arguments you will see a usage example. Th
 
 *The "OmnideckPlatform" GameObject*
 
-This gameobject contains a Unity Character Controller component. It will move around based on the users physical movements on the Omnideck. This movement is calculated in our software and is sent over VRPN in the form of a position vector [m] (accumulated movement over time). The position vector is calculated as a velocity vector in our script and sent to the Unity "SimpleMove()" function included with the Unity Character Controller component.
+This gameobject contains a Unity Character Controller component. It will move around based on the users physical movements on the Omnideck. This movement is calculated in our software and is sent over VRPN in the form of a position vector (unit: metre) that is the accumulated movement on the Omnideck over time. This position vector is further calculated into a velocity vector (unit: metre/second) inside the unity script and sent to the Unity "SimpleMove()" function of the Unity Character Controller component.
 
 *The "[CameraRig]" GameObject*
 
@@ -41,4 +41,4 @@ This gameobject is the standard SteamVR gameobject. Since this is a child to the
 ## TODO
 Loads :) 
 
-Apologies for the lack of documentation and an incomplete software suite at the moment.
+Apologies for the lack of documentation and an incomplete software suite at the moment. Look in the issues section for various bugs. 
