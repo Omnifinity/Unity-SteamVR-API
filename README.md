@@ -1,5 +1,5 @@
 #  What is this?
-This is a very early alpha of the upcoming new Omnifinity Unity SteamVR API that uses the HTC Vive as a VR solution. It is not yet complete since it is lacking the Omnideck emulator software that you need to emulate an actual Omnideck. It is currently only for developers whom we are in contact with.
+This is an early Alpha of our 'Omnifinity Unity SteamVR API' making it possible for developers to use the HTC Vive together with the Omnideck. It is currently only for developers. The documentation is sparse and the bugs are plentiful...
 
 If you like to build support in your game for the Omnideck please contact us.   
 
@@ -10,9 +10,9 @@ To build support for the Omnideck in your experience you need to first prepare y
 1. Import the SteamVR plugin (v1.2.0 or higher) from the Asset Store.
 2. Import the VRTK Unity plugin (v2.2.1 or higher) from the Asset Store.
 3. Import our Omnifinity .unitypackage into Unity (Assets > Import Package > Custom Package).
-4. Open the scene named "Scene 1" (residing in the drawer Omnifinity > Omnitrack > Scenes).
-5. Start the Omnideck emulator software (Not included here yet thus you can only study the source code)
-6. Start your game, moving the mouse around the edges of your screen will now emulate human movement around the Omnideck. 
+4. Open the scene named "Scene 1" (residing in the drawer Omnifinity > Omnitrack > Scenes) and play the game.
+5. Start the Omnideck Emulator software - it is a console application.
+6. To move the character a) while having the console active use they WASD keys on your keyboard to move the character or b) use the left thumbstick on an XBox 360 gamepad. Please look inside the batchscript (referenced later in this document below) and change the parameter '--usexbox360gamepad 0' to '--usexbox360gamepad 1'. 
 
 #### Note
 If you do not use VRTK you can skip that step but you have to remove the missing script components in the following gameobjects
@@ -21,7 +21,7 @@ If you do not use VRTK you can skip that step but you have to remove the missing
 2. "OmnideckPlatform > [CameraRig] > Controller (left)" - two missing scripts
 
 ### Using our *Omnideck Emulator* executable
-Inside the Binary-folder you will find a binary (win32) and a batch script. The default settings in the batch script is setup to communicate over VRPN using a tracker named 'OmnitrackHeadtracker0' on port 3887 (cannot be changed at the moment). 
+Inside the Binary-folder you will find an executable (win32) together with a batch script. The default settings in the batch script is setup to communicate over VRPN using a tracker named 'OmnitrackHeadtracker0' on port 3887 (cannot be changed at the moment). 
 
 When you run the batch file the Omindeck Emulator will start communicating with our API that you've imported into Unity. 
 
