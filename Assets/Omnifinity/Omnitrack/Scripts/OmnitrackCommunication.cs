@@ -91,6 +91,8 @@ namespace Omnifinity
 
             // SteamVR controller manager
             SteamVR_ControllerManager cameraRig = null;
+            SteamVR_Camera cameraEye = null;
+            Transform cameraTransform = null;
             CharacterController characterController = null;
 
             // Keep track of current and previous position to be able to calculate a movement vel
@@ -149,6 +151,17 @@ namespace Omnifinity
                     Debug.LogError("Unable to find SteamVR_ControllerManager object");
                 }
 
+                cameraEye = FindObjectOfType<SteamVR_Camera>();
+                if (cameraEye)
+                {
+                    Debug.Log("SteamVR Camera (eye): " + cameraEye);
+                    cameraTransform = cameraEye.transform;
+                }
+                else
+                {
+                    Debug.LogError("Unable to find SteamVR_Camera object");
+                }
+
                 // Get hold of the Unity Character Controller. This object is what we move.
                 characterController = transform.GetComponent<CharacterController>();
                 if (characterController)
@@ -159,7 +172,7 @@ namespace Omnifinity
                 {
                     Debug.LogError("Unable to find Character Controller object");
                 }
-                
+
             }
 
             // Get the position of the guy on the omnideck and move the character controller
@@ -181,6 +194,12 @@ namespace Omnifinity
 
                     // this moves the character controller
                     characterController.SimpleMove(currMovementVector);
+
+                    // move the center of the capsule collider along with the head
+                    characterController.center = new Vector3(cameraTransform.localPosition.x, 0, cameraTransform.localPosition.z);
+
+                    // Height compensation? Do not use ATM.
+                    //cameraRig.transform.localPosition = new Vector3(0, -characterController.height / 2f, 0);
 
                 }
                 // store for next pass
