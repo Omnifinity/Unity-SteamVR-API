@@ -21,26 +21,59 @@ using System.Runtime.InteropServices;
 
 namespace Omnifinity
 {
-    namespace OmnitrackCommunication
+    namespace Omnitrack
     {
-        class OmnitrackCommunication : MonoBehaviour
+
+		enum EUserRequestOperateTreadmill {
+			EUserRequestOperateTreadmill_NotAllowed = 0,
+			EUserRequestOperateTreadmill_NoConnection = 1,
+			EUserRequestOperateTreadmill_Stop = 100,
+			EUserRequestOperateTreadmill_Start = 200
+		}
+
+		enum EUserRequestOperateTreadmillResult {
+			EUserRequestOperateTreadmillResult_NotAllowed = 0,
+			EUserRequestOperateTreadmillResult_Stopping = 100,
+			EUserRequestOperateTreadmillResult_Stopped = 101,
+			EUserRequestOperateTreadmillResult_Starting = 200,
+			EUserRequestOperateTreadmillResult_Started = 201
+		}
+
+        class OmnitrackInterface: MonoBehaviour
         {
             // Initialize Omnitrack communication
             [DllImport("OmnitrackDLL")]
-            private static extern int IInitializeOmnitrack();
+            private static extern int InitializeOmnitrack();
 
             // Establish network connection with Omnitrack
             [DllImport("OmnitrackDLL")]
-            private static extern int IEstablishOmnitrackCommunication(ushort serverPort, char[] trackerName);
+            private static extern int EstablishOmnitrackConnection(ushort serverPort, char[] trackerName);
 
             // Close the connection with Omnitrack
             [DllImport("OmnitrackDLL")]
-            private static extern int ICloseOmnitrackConnection();
+            private static extern int CloseOmnitrackConnection();
 
             // Run the Omnitrack mainloop each frame to properly receive new data
             // (Subject to change)
             [DllImport("OmnitrackDLL")]
-            private static extern bool IMainloopOmnitrack();
+            private static extern bool UpdateOmnitrack();
+
+			// Send a request to Omnitrack that you'd like to stop the Omnideck
+			// ATTN: Implementation not finished.
+			[DllImport("OmnitrackDLL")]
+			private static extern EUserRequestOperateTreadmill UserRequestToStopTreadmill();
+
+			// Send a request to Omnitrack that you'd like to start the Omnideck
+			// ATTN: Implementation not finished.
+			[DllImport("OmnitrackDLL")]
+			private static extern EUserRequestOperateTreadmill UserRequestToStartTreadmill();
+
+			// TODO:
+			// Create acknowledge events to tell the user she allowed to start / stop the Omnideck
+
+			// Send a heartbeat to Omnitrack now and then to tell that the game is alive
+			[DllImport("OmnitrackDLL")]
+			private static extern int SendHeartbeatToOmnitrack();
 
             // Get X-position, Y and Z position
             [DllImport("OmnitrackDLL")]
@@ -72,23 +105,6 @@ namespace Omnifinity
             [DllImport("OmnitrackDLL")]
             private static extern double getTimeValDurationOfLastMessage();
 
-            // Send a request to Omnitrack that you'd like to stop the Omnideck
-            // ATTN: Implementation not finished.
-            [DllImport("OmnitrackDLL")]
-            private static extern int IRequestToStopOmnideck();
-
-            // Send a request to Omnitrack that you'd like to start the Omnideck
-            // ATTN: Implementation not finished.
-            [DllImport("OmnitrackDLL")]
-            private static extern int IRequestToStartOmnideck();
-
-            // TODO:
-            // Create acknowledge events that player was allowed to start / stop the Omnideck
-
-            // Send a heartbeat to Omnitrack now and then to tell that the game is alive
-            [DllImport("OmnitrackDLL")]
-            private static extern int ISendHeartbeatToOmnitrack();
-
             // SteamVR controller manager
             SteamVR_ControllerManager cameraRig = null;
             SteamVR_Camera cameraEye = null;
@@ -119,12 +135,12 @@ namespace Omnifinity
             virtual public void Start()
             {
                 // Initialize the state of Omnitrack
-                IInitializeOmnitrack();
+                InitializeOmnitrack();
 
                 // Establish the connection (uses VRPN)
                 ushort port = 3889;
                 var trackerName = "AppToOmnitrackTracker0";
-                if (IEstablishOmnitrackCommunication(port, trackerName.ToCharArray()) == 0)
+                if (EstablishOmnitrackConnection(port, trackerName.ToCharArray()) == 0)
                 {
                     // Sync tracking data from the Omnitrack API
                     StartCoroutine(AcquireTrackingData(1.0f / desiredFps_TrackingData));
@@ -209,9 +225,9 @@ namespace Omnifinity
                 DevRequestStartStopOfOmnideck();
             }
 
-            // Shut down communication with Omnitrack
+            // Shut down the connection to Omnitrack
             void OnApplicationQuit() {
-                if (ICloseOmnitrackConnection() == 0)
+                if (CloseOmnitrackConnection() == 0)
                 {
                     Debug.Log("Closed down communication with Omnitrack");
                 }
@@ -228,7 +244,7 @@ namespace Omnifinity
                 while (true)
                 {
                     // Must be called each frame at the moment
-                    bool res = IMainloopOmnitrack();
+                    bool res = UpdateOmnitrack();
 
                     // Various code under heavy development
                     // ATTN: Subject to change
@@ -246,7 +262,7 @@ namespace Omnifinity
                 {
                     if (isConnectionEstablished)
                     {
-                        ISendHeartbeatToOmnitrack();
+                        SendHeartbeatToOmnitrack();
                         Debug.Log("Sent heartbeat to Omnitrack");
                     }
                     else
@@ -266,12 +282,34 @@ namespace Omnifinity
             {
                 if (Input.GetMouseButtonDown(0))
                 {
-                    IRequestToStartOmnideck();
+					EUserRequestOperateTreadmill resUserRequest = UserRequestToStopTreadmill();
+					switch (resUserRequest) {
+					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NoConnection:
+						Debug.Log ("Not connection to Omnitrack");
+						break;
+					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NotAllowed:
+						Debug.Log ("Not allowed to send user request to stop the Omnideck treadmill");
+						break;
+					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_Stop:
+						Debug.Log ("Sent user request to stop the Omnideck treadmill. Awaiting stopping & stopped events.");
+						break;
+					}
                 }
 
                 if (Input.GetMouseButtonDown(1))
                 {
-                    IRequestToStopOmnideck();
+					EUserRequestOperateTreadmill resUserRequest = UserRequestToStartTreadmill();
+					switch (resUserRequest) {
+					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NoConnection:
+						Debug.Log ("Not connection to Omnitrack");
+						break;
+					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NotAllowed:
+						Debug.Log ("Not allowed to send user request to start the Omnideck treadmill");
+						break;
+					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_Start:
+						Debug.Log ("Sent user request to start the Omnideck treadmill. Awaiting starting & started events.");
+						break;
+					}
                 }
             }
 
