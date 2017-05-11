@@ -1,7 +1,7 @@
 #  What is this?
 This is an early Beta of our 'Omnifinity Unity SteamVR API' making it possible for developers to use the HTC Vive together with the Omnideck. The Omnideck is basically the worlds largest analog joystick.
 
-We are working on native integration with VRTK. More news to come later.
+We are working on native integration with VRTK (Virtual Reality ToolKit). If you want to test the experimental version please contacts us. More news to come later on official support.
 
 Currently you as a developer can emulate movement of a person walking on an Omnideck using a) the WASD keys on the keyboard or b) an XBOX 360 controller. In-game touchpad movement emulation is in the works. 
 
