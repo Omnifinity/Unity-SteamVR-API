@@ -24,6 +24,8 @@ namespace Omnifinity
     namespace Omnitrack
     {
 
+        
+
 		enum EUserRequestOperateTreadmill {
 			EUserRequestOperateTreadmill_NotAllowed = 0,
 			EUserRequestOperateTreadmill_NoConnection = 1,
@@ -41,6 +43,9 @@ namespace Omnifinity
 
         class OmnitrackInterface: MonoBehaviour
         {
+            public enum LogLevel { Verbose, Terse, None }
+            public LogLevel logLevel;
+
             // Initialize Omnitrack communication
             [DllImport("OmnitrackDLL")]
             private static extern int InitializeOmnitrack();
@@ -148,7 +153,7 @@ namespace Omnifinity
                     // Send alive to Omnitrack now and then
                     StartCoroutine(SendHeartBeat());
 
-                    Debug.Log("Successful setup of communication with Omnitrack");
+                    if(debugLevel != LogLevel.None)Debug.Log("Successful setup of communication with Omnitrack");
                 }
                 else
                 {
@@ -160,7 +165,7 @@ namespace Omnifinity
                 cameraRig = FindObjectOfType<SteamVR_ControllerManager>();
                 if (cameraRig)
                 {
-                    Debug.Log("SteamVR CameraRig: " + cameraRig);
+                    if (debugLevel != LogLevel.None) Debug.Log("SteamVR CameraRig: " + cameraRig);
                 }
                 else
                 {
@@ -170,7 +175,7 @@ namespace Omnifinity
                 cameraEye = FindObjectOfType<SteamVR_Camera>();
                 if (cameraEye)
                 {
-                    Debug.Log("SteamVR Camera (eye): " + cameraEye);
+                    if (debugLevel != LogLevel.None) Debug.Log("SteamVR Camera (eye): " + cameraEye);
                     cameraTransform = cameraEye.transform;
                 }
                 else
@@ -182,7 +187,7 @@ namespace Omnifinity
                 characterController = transform.GetComponent<CharacterController>();
                 if (characterController)
                 {
-                    Debug.Log("Unity Character Controller: ", characterController);                     
+                    if (debugLevel != LogLevel.None) Debug.Log("Unity Character Controller: ", characterController);                     
                 }
                 else
                 {
@@ -205,8 +210,8 @@ namespace Omnifinity
                     // Not used ATM
                     float moveDistance = Vector3.Distance(omniguyPosition, prevPos);
 
-                    Debug.Log("OmniguyPosition:" + omniguyPosition);
-                    Debug.Log("movementVector: " + currMovementVector);
+                    if (debugLevel == LogLevel.Verbose) Debug.Log("OmniguyPosition:" + omniguyPosition);
+                    if (debugLevel == LogLevel.Verbose) Debug.Log("movementVector: " + currMovementVector);
 
                     // this moves the character controller
                     characterController.SimpleMove(currMovementVector);
@@ -229,7 +234,7 @@ namespace Omnifinity
             void OnApplicationQuit() {
                 if (CloseOmnitrackConnection() == 0)
                 {
-                    Debug.Log("Closed down communication with Omnitrack");
+                    if (debugLevel != LogLevel.None) Debug.Log("Closed down communication with Omnitrack");
                 }
                 else
                 {
@@ -263,7 +268,7 @@ namespace Omnifinity
                     if (isConnectionEstablished)
                     {
                         SendHeartbeatToOmnitrack();
-                        Debug.Log("Sent heartbeat to Omnitrack");
+                        if (debugLevel == LogLevel.Verbose) Debug.Log("Sent heartbeat to Omnitrack");
                     }
                     else
                     {
@@ -285,13 +290,13 @@ namespace Omnifinity
 					EUserRequestOperateTreadmill resUserRequest = UserRequestToStopTreadmill();
 					switch (resUserRequest) {
 					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NoConnection:
-						Debug.Log ("Not connection to Omnitrack");
+                            if (debugLevel != LogLevel.None) Debug.Log ("Not connection to Omnitrack");
 						break;
 					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NotAllowed:
-						Debug.Log ("Not allowed to send user request to stop the Omnideck treadmill");
+                            if (debugLevel != LogLevel.None) Debug.Log ("Not allowed to send user request to stop the Omnideck treadmill");
 						break;
 					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_Stop:
-						Debug.Log ("Sent user request to stop the Omnideck treadmill. Awaiting stopping & stopped events.");
+                            if (debugLevel != LogLevel.None) Debug.Log ("Sent user request to stop the Omnideck treadmill. Awaiting stopping & stopped events.");
 						break;
 					}
                 }
@@ -301,13 +306,13 @@ namespace Omnifinity
 					EUserRequestOperateTreadmill resUserRequest = UserRequestToStartTreadmill();
 					switch (resUserRequest) {
 					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NoConnection:
-						Debug.Log ("Not connection to Omnitrack");
+                            if (debugLevel != LogLevel.None) Debug.Log ("Not connection to Omnitrack");
 						break;
 					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NotAllowed:
-						Debug.Log ("Not allowed to send user request to start the Omnideck treadmill");
+                            if (debugLevel != LogLevel.None) Debug.Log ("Not allowed to send user request to start the Omnideck treadmill");
 						break;
 					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_Start:
-						Debug.Log ("Sent user request to start the Omnideck treadmill. Awaiting starting & started events.");
+                            if (debugLevel != LogLevel.None) Debug.Log ("Sent user request to start the Omnideck treadmill. Awaiting starting & started events.");
 						break;
 					}
                 }
@@ -335,7 +340,7 @@ namespace Omnifinity
                     numberOfSimilarTrackingDataMessages = 0;
                     if (!isConnectionEstablished)
                     {
-                        Debug.Log("Established connection with Omnitrack");
+                        if (debugLevel != LogLevel.None) Debug.Log("Established connection with Omnitrack");
                         isConnectionEstablished = true;
                     }
                     else
