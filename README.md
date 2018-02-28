@@ -9,6 +9,30 @@ If you do not already own or have access to an Omnideck, you can emulate movemen
 ### Let us help you
 If you like to get help building support in your game or simulation for the Omnideck please contact us by visiting [http://omnifinity.se](http://omnifinity.se) and finding our contact details.
 
+## What is an Omnideck and how does it communicate with a game?
+The Omnideck is a 360 degree treadmill for full freedom of movement in VR. The Omnideck is controlled by a program called "Omnitrack" which is responsible for tracking the user and controlling the speed of the Omnideck. Omnitrack also communicates with games that have implemented support of our API. 
+
+Below is a basic overview of the architecture:
+
+	Omnideck
+		360 degree motorized treadmill
+
+	Tracking system
+		A system that tracks objects, e.g. HTC Vive
+
+	VR System
+		A system providing a HMD and various controllers/tracked objects, E.g. HTC Vive
+
+	User
+		A person using the Omnideck. Equipped with a VR System such as the HTC Vive.
+
+	Omnitrack
+		Software tracking the User via the Tracking system/VR System. Responsible for controlling the speed of the Omnideck and the corresponding movement path in the Game.
+
+	Game
+		A game/simulation which has implemented the Omnitrack API. Bi-directional communication with Omnitrack providing access to various states of the Omnideck.
+
+
 ##  How do I use it?
 You first need to implement our API in your Unity project and run our Omnideck Emulator software. Basically you need to move whatever character/camera controller you have around in the scene using a movement vector (Vector3 Unit: m/s) that is being supplied via the Omnitrack API.
 
