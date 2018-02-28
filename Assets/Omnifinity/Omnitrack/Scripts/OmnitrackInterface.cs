@@ -1,5 +1,6 @@
 ﻿/*
-   Copyright 2017 MSE Omnifinity AB
+   Copyright 2017-2018 MSE Omnifinity AB
+   The code below is part of the Omnitrack Unity API
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,218 +25,252 @@ namespace Omnifinity
     namespace Omnitrack
     {
 
+		#region OmnitrackEnums
+		enum ETreadmillStatus {
+			Stopped = 1,
+			Running = 2
+		};
+
 		enum EUserRequestOperateTreadmill {
-			EUserRequestOperateTreadmill_NotAllowed = 0,
-			EUserRequestOperateTreadmill_NoConnection = 1,
-			EUserRequestOperateTreadmill_Stop = 100,
-			EUserRequestOperateTreadmill_Start = 200
+			Request_Disable = 100,
+			Request_Enable = 200
 		}
 
-		enum EUserRequestOperateTreadmillResult {
-			EUserRequestOperateTreadmillResult_NotAllowed = 0,
-			EUserRequestOperateTreadmillResult_Stopping = 100,
-			EUserRequestOperateTreadmillResult_Stopped = 101,
-			EUserRequestOperateTreadmillResult_Starting = 200,
-			EUserRequestOperateTreadmillResult_Started = 201
+		enum ESystemReplyOperateTreadmill {
+			Result_NotAllowed = 1,
+			Result_Disabled_Ok = 100,
+			Result_Enabled_Ok = 200
 		}
+		#endregion OmnitrackEnums
 
         class OmnitrackInterface: MonoBehaviour
         {
-            // Initialize Omnitrack communication
-            [DllImport("OmnitrackDLL")]
-            private static extern int InitializeOmnitrack();
+
+			public enum LogLevel {None, TerseUserPositionAndVector, Verbose}
+			public LogLevel debugLevel = LogLevel.Verbose;
+
+			#region OmnitrackAPIImports
+			[DllImport("OmnitrackAPI")]
+			private static extern UInt16 GetAPIVersionMajor ();
+			[DllImport("OmnitrackAPI")]
+			private static extern UInt16 GetAPIVersionMinor ();
+			[DllImport("OmnitrackAPI")]
+			private static extern UInt16 GetAPIVersionPatch ();
+
+            // Initialize Omnitrack API communication
+            [DllImport("OmnitrackAPI")]
+            private static extern int InitializeOmnitrackAPI();
 
             // Establish network connection with Omnitrack
-            [DllImport("OmnitrackDLL")]
-            private static extern int EstablishOmnitrackConnection(ushort serverPort, char[] trackerName);
+			[DllImport("OmnitrackAPI")]
+			private static extern int EstablishOmnitrackConnection(ushort serverPort, string trackerName);
 
             // Close the connection with Omnitrack
-            [DllImport("OmnitrackDLL")]
+            [DllImport("OmnitrackAPI")]
             private static extern int CloseOmnitrackConnection();
 
             // Run the Omnitrack mainloop each frame to properly receive new data
-            // (Subject to change)
-            [DllImport("OmnitrackDLL")]
-            private static extern bool UpdateOmnitrack();
+            [DllImport("OmnitrackAPI")]
+			[return:MarshalAs(UnmanagedType.I1)]
+            private static extern void UpdateOmnitrack();
+
+			// Check if the treadmill is online and communicating with game
+			[DllImport("OmnitrackAPI")]
+			[return:MarshalAs(UnmanagedType.I1)]
+			private static extern bool IsOmnitrackOnline ();
+
+			[DllImport("OmnitrackAPI")]
+			private static extern float GetTreadmillSpeed();
+
+			[DllImport("OmnitrackAPI")]
+			private static extern int GetTreadmillState();
+
+			[DllImport("OmnitrackAPI")]
+			private static extern int SendHeartbeatToOmnitrack(UInt16 major, UInt16 minor, UInt16 patch);
+
+            // Get X-position, Y and Z position
+            [DllImport("OmnitrackAPI")]
+            private static extern double getX();
+
+            [DllImport("OmnitrackAPI")]
+            private static extern double getY();
+
+            [DllImport("OmnitrackAPI")]
+            private static extern double getZ();
+
+			#endregion OmnitrackAPIImports
+
+			#region OmnitrackAPIImports_Beta
+			// Handshake between this projects DLL API-version and Omnitrack-version
+			[DllImport("OmnitrackAPI")]
+			private static extern int PerformOmnitrackHandshake();
+
+			// Has new data arrived or not
+			// ATTN: Subject to change
+			[DllImport("OmnitrackAPI")]
+			[return:MarshalAs(UnmanagedType.I1)]
+			private static extern bool hasNewDataArrived(int sensor);
+
+			// Timestamp of last message (second part)
+			// ATTN: Subject to change
+			[DllImport("OmnitrackAPI")]
+			private static extern long getTimeValSecOfLastMessage();
+
+			// Timestamp of last message (millisecond part)
+			// ATTN: Subject to change
+			[DllImport("OmnitrackAPI")]
+			private static extern long getTimeValUSecOfLastMessage();
+			private long lastMessageSec, lastMessageUSec;
+
+			// Delta-time since last received message
+			// ATTN: Subject to change
+			[DllImport("OmnitrackAPI")]
+			private static extern double getTimeValDurationOfLastMessage();
 
 			// Send a request to Omnitrack that you'd like to stop the Omnideck
 			// ATTN: Implementation not finished.
-			[DllImport("OmnitrackDLL")]
-			private static extern EUserRequestOperateTreadmill UserRequestToStopTreadmill();
+			[DllImport("OmnitrackAPI")]
+			private static extern ESystemReplyOperateTreadmill UserRequestToStopTreadmill();
 
 			// Send a request to Omnitrack that you'd like to start the Omnideck
 			// ATTN: Implementation not finished.
-			[DllImport("OmnitrackDLL")]
-			private static extern EUserRequestOperateTreadmill UserRequestToStartTreadmill();
+			[DllImport("OmnitrackAPI")]
+			private static extern ESystemReplyOperateTreadmill UserRequestToStartTreadmill();
 
 			// TODO:
 			// Create acknowledge events to tell the user she allowed to start / stop the Omnideck
+			[DllImport("OmnitrackAPI")]
+			[return:MarshalAs(UnmanagedType.I1)]
+			private static extern bool IsAllowedToStartTreadmill();
 
-			// Send a heartbeat to Omnitrack now and then to tell that the game is alive
-			[DllImport("OmnitrackDLL")]
-			private static extern int SendHeartbeatToOmnitrack();
+			[DllImport("OmnitrackAPI")]
+			[return:MarshalAs(UnmanagedType.I1)]
+			private static extern bool IsAllowedToStopTreadmill();
+			#endregion OmnitrackAPIImports_Beta
 
-            // Get X-position, Y and Z position
-            [DllImport("OmnitrackDLL")]
-            private static extern double getX();
+			#region OmnitrackVariables
 
-            [DllImport("OmnitrackDLL")]
-            private static extern double getY();
+            // How often to receive motion velocity data from omnitrack.
+            // ATTN: Subject to change.
+            const float desiredFps_TrackingData = 60f;
 
-            [DllImport("OmnitrackDLL")]
-            private static extern double getZ();
-
-            // ATTN: Subject to change
-            [DllImport("OmnitrackDLL")]
-            private static extern bool hasNewDataArrived(int sensor);
-
-            // Timestamp of last message (second part)
-            // ATTN: Subject to change
-            [DllImport("OmnitrackDLL")]
-            private static extern long getTimeValSecOfLastMessage();
-
-            // Timestamp of last message (millisecond part)
-            // ATTN: Subject to change
-            [DllImport("OmnitrackDLL")]
-            private static extern long getTimeValUSecOfLastMessage();
-            private long lastMessageSec, lastMessageUSec;
-
-            // Delta-time since last received message
-            // ATTN: Subject to change
-            [DllImport("OmnitrackDLL")]
-            private static extern double getTimeValDurationOfLastMessage();
-
-            // SteamVR controller manager
-            SteamVR_ControllerManager cameraRig = null;
-            SteamVR_Camera cameraEye = null;
-            Transform cameraTransform = null;
-            CharacterController characterController = null;
-
-            // Keep track of current and previous position to be able to calculate a movement vel
-            Vector3 currMovementVector;
-            Vector3 prevPos;
-
-            // How often to receive motion velocity data from omnitrack. Do not change.
-            // ATTN: Subject to change. 
-            const float desiredFps_TrackingData = 75f;
-
-            // Get the position (accumulated) of the character walking on the omnideck
-            Vector3 getOmnideckCharacterPos()
-            {
-                return new Vector3((float)getX(), (float)getY(), (float)getZ());
-            }
+			// Keep track of current and previous position to be able to calculate a movement vel
+			bool hasReceivedStartPosition = false;
+			static Vector3 currPosition;
+			static Vector3 currMovementVector;
+			Vector3 prevPos;
 
             // Various variables during development
+			// ATTN: Subject to change
             double timeValOfCurrTrackingMessage, timeValOfPrevTrackingMessage;
             uint numberOfSimilarTrackingDataMessages = 0;
-            bool isConnectionEstablished = false;
 
+			string strAPIVersion = "";
+			string strOmnitrackVersion = "";
+			bool isHandShakeFinished = false;
+
+			// Port and trackername. Should normally not be changed.
+			public ushort port = 3889;
+			public string trackerName = "AppToOmnitrackTracker0";
+			#endregion OmnitrackVariables
+
+			#region MonoBehaviourMethods
             // Setup Omnitrack communication, SteamVR connection, Unity Character 
             // Controller component and start various coroutines
             virtual public void Start()
             {
-                // Initialize the state of Omnitrack
-                InitializeOmnitrack();
+                // Initialize communication with the Omnitrack API
+                InitializeOmnitrackAPI();
 
                 // Establish the connection (uses VRPN)
-                ushort port = 3889;
-                var trackerName = "AppToOmnitrackTracker0";
-                if (EstablishOmnitrackConnection(port, trackerName.ToCharArray()) == 0)
+                if (EstablishOmnitrackConnection(port, trackerName) == 0)
                 {
-                    // Sync tracking data from the Omnitrack API
+                    // Periodically acquire tracking data from Omnitrack
                     StartCoroutine(AcquireTrackingData(1.0f / desiredFps_TrackingData));
 
-                    // Send alive to Omnitrack now and then
+                    // Periodically tell Omnitrack we are alive
                     StartCoroutine(SendHeartBeat());
 
-                    Debug.Log("Successful setup of communication with Omnitrack");
+					// Periodically check the state of the Omnideck
+					StartCoroutine(CheckOmnideckState());
+
+					if (debugLevel != LogLevel.None)
+	                    Debug.Log("Successful setup of communication handlers with Omnitrack");
                 }
                 else
                 {
-                    Debug.LogError("Unable to setup communication with Omnitrack");
-                    //Destroy(gameObject);
+					if (debugLevel != LogLevel.None)
+	                    Debug.LogError("Unable to setup communication handlers with Omnitrack");
                 }
-
-                // Initialize access to Steam VR
-                cameraRig = FindObjectOfType<SteamVR_ControllerManager>();
-                if (cameraRig)
-                {
-                    Debug.Log("SteamVR CameraRig: " + cameraRig);
-                }
-                else
-                {
-                    Debug.LogError("Unable to find SteamVR_ControllerManager object");
-                }
-
-                cameraEye = FindObjectOfType<SteamVR_Camera>();
-                if (cameraEye)
-                {
-                    Debug.Log("SteamVR Camera (eye): " + cameraEye);
-                    cameraTransform = cameraEye.transform;
-                }
-                else
-                {
-                    Debug.LogError("Unable to find SteamVR_Camera object");
-                }
-
-                // Get hold of the Unity Character Controller. This object is what we move.
-                characterController = transform.GetComponent<CharacterController>();
-                if (characterController)
-                {
-                    Debug.Log("Unity Character Controller: ", characterController);                     
-                }
-                else
-                {
-                    Debug.LogError("Unable to find Character Controller object");
-                }
-
             }
 
-            // Get the position of the guy on the omnideck and move the character controller
-            // based on a movementment vector (as calculated by Omnitrack)
-            void Update()
-            {
-                // Get current position of the guy walking on the omnideck 
-                Vector3 omniguyPosition = getOmnideckCharacterPos();
+			// Shut down the connection to Omnitrack
+			void OnApplicationQuit() {
+				if (CloseOmnitrackConnection() == 0)
+				{
+					if (debugLevel != LogLevel.None)
+						Debug.Log("Closed down communication with Omnitrack");
+				}
+				else
+				{
+					if (debugLevel != LogLevel.None)
+						Debug.LogWarning("Unable to properly close down ommunication with Omnitrack");
+				}
+			}
+			#endregion MonoBehaviourMethods
 
-                // calculate movement vector since last pass
-                currMovementVector = (omniguyPosition - prevPos) / Time.deltaTime;
-                if (characterController != null)
-                {
-                    // Not used ATM
-                    float moveDistance = Vector3.Distance(omniguyPosition, prevPos);
+			#region OmnitrackAPIMethods
+			// Get the position (accumulated over time) of the character walking on the omnideck
+			public static Vector3 GetOmnideckCharacterPos()
+			{
+				return new Vector3((float)getX(), (float)getY(), (float)getZ());
+			}
 
-                    Debug.Log("OmniguyPosition:" + omniguyPosition);
-                    Debug.Log("movementVector: " + currMovementVector);
+			// Update the omnideck users position/movement vector
+			private void UpdateOmnideckCharacterMovement() {
+				currPosition = GetOmnideckCharacterPos();
 
-                    // this moves the character controller
-                    characterController.SimpleMove(currMovementVector);
+				// make sure the initial starting position does not result in a large jump
+				if (!hasReceivedStartPosition) {
+					if (debugLevel != LogLevel.None)
+						Debug.Log ("Resetting start position for calculation of the Omnideck character movement");
+					hasReceivedStartPosition = !hasReceivedStartPosition;
+					// set same previous and current position
+					prevPos = currPosition;
+				}
 
-                    // move the center of the capsule collider along with the head
-                    characterController.center = new Vector3(cameraTransform.localPosition.x, 0, cameraTransform.localPosition.z);
+				// calculate movement vector since last pass
+				currMovementVector = (currPosition - prevPos) / Time.deltaTime;
 
-                    // Height compensation? Do not use ATM.
-                    //cameraRig.transform.localPosition = new Vector3(0, -characterController.height / 2f, 0);
+				// cap the vector if it is very high (e.g. when omnitrack starts and headset goes from
+				// lying on the centerplate to being moved to e.g. 1.8m in one frame. With 60 fps a 
+				// threshold value of 0.05 means roughly a 3 m/s movement which is way too high.
+				float distance = Vector3.Distance (currPosition, prevPos);
+				if (distance > 0.05f) {
+					Debug.Log ("Received potential high initial movement speed, capping");
+					currMovementVector = Vector3.zero;
+				}
 
-                }
-                // store for next pass
-                prevPos = omniguyPosition;
+				// store current pos for next pass
+				prevPos = currPosition;
 
-                // various test code below
-                DevRequestStartStopOfOmnideck();
-            }
+				if (debugLevel == LogLevel.TerseUserPositionAndVector ) {
+					Debug.Log ("User Position:" + currPosition);
+					Debug.Log ("User movementVector: " + currMovementVector);
+				}
+			}
 
-            // Shut down the connection to Omnitrack
-            void OnApplicationQuit() {
-                if (CloseOmnitrackConnection() == 0)
-                {
-                    Debug.Log("Closed down communication with Omnitrack");
-                }
-                else
-                {
-                    Debug.LogWarning("Unable to properly close down ommunication with Omnitrack");
-                }
-            }
+			// returns the current accumulated position of the omnideck user.
+			// Unit = [m]
+			public static Vector3 GetCurrentOmnideckCharacterPosition() {
+				return currPosition;
+			}
+
+			// returns the current movement vector of the omnideck user.
+			// Unit = [m/s]
+			public static Vector3 GetCurrentOmnideckCharacterMovementVector() {
+				return currMovementVector;
+			}
 
             // Acquire tracking data from Omnitrack
             // ATTN: Subject to change
@@ -243,109 +278,152 @@ namespace Omnifinity
             {
                 while (true)
                 {
-                    // Must be called each frame at the moment
-                    bool res = UpdateOmnitrack();
+					// Update against Omnitrack API
+                    UpdateOmnitrack();
 
-                    // Various code under heavy development
-                    // ATTN: Subject to change
-                    DevCheckIncomingDataAgainstConnectionState();
+					// Update Omnideck Character position/movement data
+					UpdateOmnideckCharacterMovement ();
 
                     yield return new WaitForSeconds(waitTime);
                 }
             }
 
-            // Periodically send heatbeat to Omnitrack to notify that we are alive
+            // Periodically send heatbeat to Omnitrack to notify that game is alive
             IEnumerator SendHeartBeat()
             {
                 float waitTime = 1.0f;
                 while (true)
                 {
-                    if (isConnectionEstablished)
+					if (IsOmnitrackOnline ())
                     {
-                        SendHeartbeatToOmnitrack();
-                        Debug.Log("Sent heartbeat to Omnitrack");
+						SendHeartbeatToOmnitrack(GetAPIVersionMajor(), GetAPIVersionMinor(), GetAPIVersionPatch());
+						if (debugLevel != LogLevel.None)
+							Debug.Log("Sent heartbeat to Omnitrack, using API v" + GetAPIVersionMajor().ToString () + "." + GetAPIVersionMinor().ToString () + "." + GetAPIVersionPatch().ToString ());
                     }
                     else
                     {
-                        Debug.LogWarning("Unable to send heartbeat to Omnitrack - connection down");
+						if (debugLevel != LogLevel.None)
+	                        Debug.LogWarning("Unable to send heartbeat to Omnitrack - connection down");
                     }
                     yield return new WaitForSeconds(waitTime);
-
                 }
             }
 
+			// Periodically check the state of the Omnideck
+			IEnumerator CheckOmnideckState()
+			{
+				float waitTime = 1.0f;
+				while (true)
+				{
+					if (IsOmnitrackOnline ()) {
+						ETreadmillStatus treadmillState = (ETreadmillStatus)GetTreadmillState ();
+						switch (treadmillState) {
+						case ETreadmillStatus.Stopped:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Treadmill stopped");
+							break;
+
+						case ETreadmillStatus.Running:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Treadmill running");
+							break;
+
+						default:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Unsupported treadmill state");
+							break;
+						}
+					} else {
+						if (debugLevel != LogLevel.None)
+							Debug.LogWarning ("Omnitrack connection offline");
+					}
+					yield return new WaitForSeconds(waitTime);
+				}
+			}
+			#endregion
+
+			#region OmnitrackAPIMethods_Beta
+			// Unfinished/unverified code that is in active development
+			// ATTN: Subject to change
+
+			// Handshake version check
+			// ATTN: Subject to change
+			IEnumerator PerformVersionHandshake()
+			{
+				float waitTime = 1.0f;
+				while (true && !isHandShakeFinished)
+				{
+					if (debugLevel != LogLevel.None)
+						Debug.Log ("Handshake not finished");
+					if (IsOmnitrackOnline ())
+					{
+						if (debugLevel != LogLevel.None)
+							Debug.Log ("Connection is enabled");
+						if (PerformOmnitrackHandshake () == 0) {
+
+							UInt16 verAPIMajor, verAPIMinor, verAPIPatch;
+							verAPIMajor = GetAPIVersionMajor ();
+							verAPIMinor = GetAPIVersionMinor ();
+							verAPIPatch = GetAPIVersionPatch ();
+							strAPIVersion = verAPIMajor.ToString () + "." + verAPIMinor.ToString () + "." + verAPIPatch.ToString ();
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Using API Version: " + strAPIVersion);
+						}
+					}
+					else
+					{
+						if (debugLevel != LogLevel.None)
+							Debug.LogWarning("Unable to handshake with Omnitrack - connection down");
+					}
+					yield return new WaitForSeconds(waitTime);
+				}
+				yield return null;
+			}
 
             // Code in dev, will enable users to disable/enable omnideck upon will 
             // ("forced roomscale")
             // ATTN: Subject to change
-            void DevRequestStartStopOfOmnideck()
+			public  void DevRequestChangeOfOmnideckOperationMode()
             {
-                if (Input.GetMouseButtonDown(0))
-                {
-					EUserRequestOperateTreadmill resUserRequest = UserRequestToStopTreadmill();
-					switch (resUserRequest) {
-					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NoConnection:
-						Debug.Log ("Not connection to Omnitrack");
-						break;
-					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NotAllowed:
-						Debug.Log ("Not allowed to send user request to stop the Omnideck treadmill");
-						break;
-					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_Stop:
-						Debug.Log ("Sent user request to stop the Omnideck treadmill. Awaiting stopping & stopped events.");
-						break;
+				if (Input.GetMouseButtonDown (0)) {
+					if (IsOmnitrackOnline ()) {
+						ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStopTreadmill ();
+						switch (resOperateTreadmillRequest) {
+						case ESystemReplyOperateTreadmill.Result_NotAllowed:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Not allowed to send user request to stop the Omnideck");
+							break;
+						case ESystemReplyOperateTreadmill.Result_Disabled_Ok:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Sent user request to stop the Omnideck treadmill. Treadmill disabled.");
+							break;
+						}
+					} else {
+						if (debugLevel != LogLevel.None)
+						Debug.LogError ("Unable to send request, not connected to Omnitrack");
 					}
-                }
+				}
 
-                if (Input.GetMouseButtonDown(1))
-                {
-					EUserRequestOperateTreadmill resUserRequest = UserRequestToStartTreadmill();
-					switch (resUserRequest) {
-					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NoConnection:
-						Debug.Log ("Not connection to Omnitrack");
-						break;
-					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_NotAllowed:
-						Debug.Log ("Not allowed to send user request to start the Omnideck treadmill");
-						break;
-					case EUserRequestOperateTreadmill.EUserRequestOperateTreadmill_Start:
-						Debug.Log ("Sent user request to start the Omnideck treadmill. Awaiting starting & started events.");
-						break;
+				if (Input.GetMouseButtonDown (1)) {
+					if (IsOmnitrackOnline ()) {
+						ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStartTreadmill ();
+						switch (resOperateTreadmillRequest) {
+						case ESystemReplyOperateTreadmill.Result_NotAllowed:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Not allowed to send user request to start the Omnideck");
+							break;
+						case ESystemReplyOperateTreadmill.Result_Enabled_Ok:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Sent user request to start the Omnideck treadmill. Treadmill enabled.");
+							break;
+						}
+					} else {
+						if (debugLevel != LogLevel.None)
+							Debug.LogError ("Unable to send request, not connected to Omnitrack");
 					}
-                }
+				}
             }
-
-            // Code in dev
-            // ATTN: Subject to change
-            void DevCheckIncomingDataAgainstConnectionState()
-            {
-                // Get time difference (in seconds)
-                timeValOfCurrTrackingMessage = getTimeValDurationOfLastMessage() / 1000000;
-
-                // Rapid hack for none/loss of connection based on similar messages
-                if (timeValOfCurrTrackingMessage - timeValOfPrevTrackingMessage == 0)
-                {
-                    numberOfSimilarTrackingDataMessages++;
-                    if (numberOfSimilarTrackingDataMessages % desiredFps_TrackingData == 0)
-                    {
-                        Debug.LogWarning("Probably none/lost connection to Omnitrack");
-                        isConnectionEstablished = false;
-                    }
-                }
-                else
-                {
-                    numberOfSimilarTrackingDataMessages = 0;
-                    if (!isConnectionEstablished)
-                    {
-                        Debug.Log("Established connection with Omnitrack");
-                        isConnectionEstablished = true;
-                    }
-                    else
-                    {
-                        // Already connected, everything normal
-                    }
-                }
-
-                timeValOfPrevTrackingMessage = timeValOfCurrTrackingMessage;
-            }
+			#endregion OmnitrackAPICode_Beta
         }
     }
 }
