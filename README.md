@@ -1,7 +1,7 @@
 #  What is this?
 This is Omnifinity's 'Unity SteamVR API' (beta) making it possible for developers to use the HTC Vive together with the Omnideck. The Omnideck is basically an analog joystick that feeds a game/simulation with a 3D vector representing how the character/camera controller should move around. 
 
-There are various ways to control a game/simulation using the Omnideck based on third party emulators and various drivers. You can find an overview of the various methods here: [Controlling applications using the Omnideck.pdf](https://github.com/Omnifinity/Unity-SteamVR-API/blob/master/Controlling%20applications%20using%20the%20Omnideck.pdf). 
+There are various ways to control a game/simulation using the Omnideck based on third party emulators and drivers. You can find an overview of these methods here: [Controlling applications using the Omnideck.pdf](https://github.com/Omnifinity/Unity-SteamVR-API/blob/master/Controlling%20applications%20using%20the%20Omnideck.pdf). 
 
 Please contact us if you would like to know more.
 
@@ -41,7 +41,7 @@ You first need to implement our API in your Unity project and run our Omnideck E
 ### Using our API Code in the example scenes
 1. Import the SteamVR plugin (v1.2.0 or higher) from the Asset Store.
 
-2. Import the latest Omnifinity .unitypackage [OmnifinityAPI_v1.17.4-Alpha-U5.4.2f2.unitypackage](https://github.com/Omnifinity/Unity-SteamVR-API/blob/master/OmnifinityAPI_v1.17.4-Alpha-U5.4.2f2.unitypackage "v1.17.4 At the time of writing") into Unity (Assets > Import Package > Custom Package). It contains a DLL that is built for 64-bit.
+2. Import the latest Omnifinity .unitypackage into Unity (Assets > Import Package > Custom Package). Find the highest number in the root of the reposity. The unitypackage contains source code, example scenes together with our API/DLL, built for 64-bit. **Note that the source code in this repository will be ahead of the .unitypackage at an given time. The most stable implementation relies on the latest .unitypackage**.
 
 3. Open one of the two scenes named (residing in the drawer Omnifinity > Omnitrack > Scenes):
 	1. "Example - Move SteamVR Camerarig using a standard Unity CharacterController"
