@@ -39,7 +39,7 @@ Below is a basic overview of the architecture:
 You first need to implement our API in your Unity project and run our Omnideck Emulator software. Basically you need to move whatever character/camera controller you have around in the scene using a movement vector (Vector3 Unit: m/s) that is being supplied via the Omnitrack API.
 
 ### Using our API Code in the example scenes
-1. Import the SteamVR plugin (v1.2.0 or higher) from the Asset Store.
+1. Import the SteamVR plugin (v1.2.0 or higher) from the Asset Store. Note that there is a bug in version 1.2.3 hindering the controllers to update. Check this thread for a solution provided by aleiby: [https://github.com/ValveSoftware/steamvr_unity_plugin/issues/49](https://github.com/ValveSoftware/steamvr_unity_plugin/issues/49)
 
 2. Import the latest Omnifinity .unitypackage into Unity (Assets > Import Package > Custom Package). Find the highest number in the root of the reposity. The unitypackage contains source code, example scenes together with our API/DLL, built for 64-bit. **Note that the source code in this repository will be ahead of the .unitypackage at an given time. The most stable implementation relies on the latest .unitypackage**.
 

@@ -1,5 +1,13 @@
-Omnifinity Unity API v1.17.2-Beta
+Omnifinity Unity API v1.17.4-Beta
+Uses:
+Unity 5.4.2f2
+SteamVR plugin for Unity v1.2.3 (uses SDK 1.0.12)
+Note: There is a but in the SteamVR plugin hindering the controllers to
+render at the correct location. This is solved by following aleiby's comment
+here https://github.com/ValveSoftware/steamvr_unity_plugin/issues/49
 
+
+Omnifinity Unity API v1.17.2-Beta
 Uses:
 Unity 5.4.2f1
 VRTK 2.2.1
