@@ -1,7 +1,9 @@
 #  What is this?
 This is Omnifinity's 'Unity SteamVR API' (beta) making it possible for developers to use the HTC Vive together with the Omnideck. The Omnideck is basically an analog joystick that feeds a game/simulation with a 3D vector representing how the character/camera controller should move around. 
 
-There are various ways to control a game/simulation using the Omnideck based on third party emulators and various drivers. Contact us if you would like to know more ways to control your game using the Omnideck.
+There are various ways to control a game/simulation using the Omnideck based on third party emulators and various drivers. You can find an overview of the various methods here: [Controlling applications using the Omnideck.pdf](https://github.com/Omnifinity/Unity-SteamVR-API/blob/master/Controlling%20applications%20using%20the%20Omnideck.pdf). 
+
+Please contact us if you would like to know more.
 
 ### Emulating an Omnideck
 If you do not already own or have access to an Omnideck, you can emulate movement of a person walking on an Omnideck using a) the WASD keys on the keyboard or b) an XBOX 360 controller. 
