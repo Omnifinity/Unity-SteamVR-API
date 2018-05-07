@@ -1,7 +1,7 @@
 ﻿/*
    Copyright 2017-2018 MSE Omnifinity AB
    The code below is a simple example of using a standard Unity CharacterController
-   attached to the SteamVR Camerarig to move the Omnideck user around based on 
+   attached to the SteamVR CameraRig for moving the Omnideck user around based on
    position data arriving from Omnitrack.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,11 @@ using Omnifinity.Omnitrack;
 
 public class OmnitrackCharacterController_Example : MonoBehaviour {
 
+	// debugging stuff
 	public enum LogLevel {None, Terse, Verbose}
 	public LogLevel debugLevel = LogLevel.Verbose;
 
+	// our interface of interest
 	OmnitrackInterface omnitrackInterface;
 
 	// SteamVR controller manager
@@ -37,6 +39,7 @@ public class OmnitrackCharacterController_Example : MonoBehaviour {
 	#region MonoBehaviorMethods
 	// setup various things
 	void Start () {
+		// get hold of the Omnitrack interface component
 		omnitrackInterface = GetComponent<OmnitrackInterface> ();
 		if (omnitrackInterface) {
 			if (debugLevel != LogLevel.None)
@@ -44,69 +47,73 @@ public class OmnitrackCharacterController_Example : MonoBehaviour {
 		} else {
 			if (debugLevel != LogLevel.None)
 				Debug.Log("Unable to find OmnitrackInterface component on object. Please add an OmnitrackInterface component.", gameObject);
+			return;
 		}
 
 		// Initialize access to Steam VR
 		cameraRig = FindObjectOfType<SteamVR_ControllerManager>();
-		if (cameraRig)
-		{
+		if (cameraRig) {
 			if (debugLevel != LogLevel.None)
 				Debug.Log("SteamVR CameraRig: " + cameraRig);
-		}
-		else
-		{
+		} else {
 			if (debugLevel != LogLevel.None)
 				Debug.LogError("Unable to find SteamVR_ControllerManager object");
+			return;
 		}
 
+		// get hold of the steamvr camera and its transform
 		cameraEye = FindObjectOfType<SteamVR_Camera>();
-		if (cameraEye)
-		{
+		if (cameraEye) {
 			if (debugLevel != LogLevel.None)
 				Debug.Log("SteamVR Camera (eye): " + cameraEye);
 			cameraTransform = cameraEye.transform;
-		}
-		else
-		{
+		} else {
 			if (debugLevel != LogLevel.None)
 				Debug.LogError("Unable to find SteamVR_Camera object");
+			return;
 		}
 
 		// Get hold of the Unity Character Controller. This object is what we move.
 		characterController = transform.GetComponent<CharacterController>();
-		if (characterController)
-		{
+		if (characterController) {
 			if (debugLevel != LogLevel.None)
 				Debug.Log("Unity Character Controller: ", characterController);                     
-		}
-		else
-		{
+		} else {
 			if (debugLevel != LogLevel.None)
 				Debug.LogError("Unable to find Character Controller object");
+			return;
 		}
 	}
 
 
+	// move the object
 	void Update () {
-		
-		if (characterController != null)
-		{
-			// calculate movement vector since last pass
-			Vector3 currMovementVector = OmnitrackInterface.GetCurrentOmnideckCharacterMovementVector();
+		// escape if we have not gotten hold of the interface component
+		if (!omnitrackInterface)
+			return;
 
-			// moves the character controller based on the movement vector
-			characterController.SimpleMove (currMovementVector);
-
-			// move the center of the capsule collider along with the head
-			// so that the user cannot move through walls
-			if (cameraTransform != null)
-				characterController.center = new Vector3 (cameraTransform.localPosition.x, 0, cameraTransform.localPosition.z);
-		} else {
+		if (characterController == null) {
 			if (debugLevel != LogLevel.None)
 				Debug.LogError ("Unable to move charactercontroller");
+			return;
 		}
 
-		// Call some prototype code, this can change anytime
+		// calculate movement vector since last pass
+		Vector3 newMovementVector = omnitrackInterface.GetCurrentOmnideckCharacterMovementVector();
+
+		// disregard height changes
+		Vector3 currMovementVector = new Vector3 (newMovementVector.x, 0, newMovementVector.z);
+
+		// moves the character controller based on the movement vector
+		characterController.SimpleMove (currMovementVector);
+
+		// move the center of the capsule collider along with the head
+		// so that the user cannot move through walls
+		if (cameraTransform != null)
+			characterController.center = new Vector3 (cameraTransform.localPosition.x, 0, cameraTransform.localPosition.z);
+
+		// Call some prototype code
+		// ATTN: this can change anytime
 		PrototypeCodeSubjectToChange();
 	}
 	#endregion MonoBehaviorMethods
