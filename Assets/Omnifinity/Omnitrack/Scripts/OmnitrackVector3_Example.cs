@@ -22,9 +22,11 @@ using Omnifinity.Omnitrack;
 
 public class OmnitrackVector3_Example : MonoBehaviour {
 
+	// debugging stuff
 	public enum LogLevel {None, Terse, Verbose}
 	public LogLevel debugLevel = LogLevel.Verbose;
 
+	// our interface of interest
 	OmnitrackInterface omnitrackInterface;
 
 	// SteamVR controller manager
@@ -35,6 +37,7 @@ public class OmnitrackVector3_Example : MonoBehaviour {
 	#region MonoBehaviorMethods
 	// setup various things
 	void Start () {
+		// get hold of the Omnitrack interface component
 		omnitrackInterface = GetComponent<OmnitrackInterface> ();
 		if (omnitrackInterface) {
 			if (debugLevel != LogLevel.None)
@@ -42,46 +45,51 @@ public class OmnitrackVector3_Example : MonoBehaviour {
 		} else {
 			if (debugLevel != LogLevel.None)
 				Debug.Log("Unable to find OmnitrackInterface component on object. Please add an OmnitrackInterface component.", gameObject);
+			return;
 		}
 
 		// Initialize access to Steam VR
 		cameraRig = FindObjectOfType<SteamVR_ControllerManager>();
-		if (cameraRig)
-		{
+		if (cameraRig) {
 			if (debugLevel != LogLevel.None)
 				Debug.Log("SteamVR CameraRig: " + cameraRig);
-		}
-		else
-		{
+		} else {
 			if (debugLevel != LogLevel.None)
 				Debug.LogError("Unable to find SteamVR_ControllerManager object");
+			return;
 		}
 
+		// get hold of the steamvr camera and its transform
 		cameraEye = FindObjectOfType<SteamVR_Camera>();
-		if (cameraEye)
-		{
+		if (cameraEye) {
 			if (debugLevel != LogLevel.None)
 				Debug.Log("SteamVR Camera (eye): " + cameraEye);
 			cameraTransform = cameraEye.transform;
-		}
-		else
-		{
+		} else {
 			if (debugLevel != LogLevel.None)
 				Debug.LogError("Unable to find SteamVR_Camera object");
+			return;
 		}
 	}
 
 	// move the object
 	void Update () {
+		// escape if we have not gotten hold of the interface component
+		if (!omnitrackInterface)
+			return;
 
-		// calculate movement vector since last pass
-		Vector3 currMovementVector = OmnitrackInterface.GetCurrentOmnideckCharacterMovementVector();
+		// calculate movement vector since last pass [m/s]
+		Vector3 currMovementVector = omnitrackInterface.GetCurrentOmnideckCharacterMovementVector();
 
-		// Simply translate the transform ([m/s] * [1/s] = [m])
-		// (in a normal use case you'd have some code for ground/object collision)
-		transform.Translate (currMovementVector * Time.deltaTime);
+		// disregard height changes
+		Vector3 bodyMovementVector = new Vector3 (currMovementVector.x, 0, currMovementVector.z);
 
-		// Call some prototype code, this can change anytime
+		// Simply translate the transform ([m/s] * [s] = [m])
+		// (in a normal use case you'd have some code/raycasting for ground/object collision)
+		transform.Translate (bodyMovementVector * Time.deltaTime);
+
+		// Call some prototype code
+		// ATTN: this can change anytime
 		PrototypeCodeSubjectToChange();
 	}
 	#endregion MonoBehaviorMethods
