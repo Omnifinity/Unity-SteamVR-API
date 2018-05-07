@@ -79,14 +79,21 @@ namespace Omnifinity
 			[return:MarshalAs(UnmanagedType.I1)]
 			private static extern bool IsOmnitrackOnline ();
 
+			// Get treadmill speed [m/s]
 			[DllImport("OmnitrackAPI")]
 			private static extern float GetTreadmillSpeed();
 
+			// Get treadmill state
 			[DllImport("OmnitrackAPI")]
 			private static extern int GetTreadmillState();
 
+			// Send heart beat to Omnitrack and notify it which DLL version the game is using
 			[DllImport("OmnitrackAPI")]
 			private static extern int SendHeartbeatToOmnitrack(UInt16 major, UInt16 minor, UInt16 patch);
+
+			// Get the FPS of arriving tracking data
+			[DllImport("OmnitrackAPI")]
+			private static extern double getTrackingDataFPS();
 
             // Get X-position, Y and Z position
             [DllImport("OmnitrackAPI")]
@@ -97,7 +104,6 @@ namespace Omnifinity
 
             [DllImport("OmnitrackAPI")]
             private static extern double getZ();
-
 			#endregion OmnitrackAPIImports
 
 			#region OmnitrackAPIImports_Beta
@@ -152,7 +158,8 @@ namespace Omnifinity
 
             // How often to receive motion velocity data from omnitrack.
             // ATTN: Subject to change.
-            const float desiredFps_TrackingData = 60f;
+            const float desiredFps_TrackingData = 75f;
+			double omnitrackFps_TrackingData = 0;
 
 			// Keep track of current and previous position to be able to calculate a movement vel
 			bool hasReceivedStartPosition = false;
@@ -174,6 +181,11 @@ namespace Omnifinity
 			public string trackerName = "AppToOmnitrackTracker0";
 			#endregion OmnitrackVariables
 
+
+			bool hasReceivedTrackingDataFPS = false;
+
+			private IEnumerator trackingDataCoroutine;
+
 			#region MonoBehaviourMethods
             // Setup Omnitrack communication, SteamVR connection, Unity Character 
             // Controller component and start various coroutines
@@ -185,8 +197,9 @@ namespace Omnifinity
                 // Establish the connection (uses VRPN)
                 if (EstablishOmnitrackConnection(port, trackerName) == 0)
                 {
-                    // Periodically acquire tracking data from Omnitrack
-                    StartCoroutine(AcquireTrackingData(1.0f / desiredFps_TrackingData));
+                    // Periodically communicate and acquire tracking data from Omnitrack
+					trackingDataCoroutine = AcquireTrackingData (1.0f / desiredFps_TrackingData);
+					StartCoroutine(trackingDataCoroutine);
 
                     // Periodically tell Omnitrack we are alive
                     StartCoroutine(SendHeartBeat());
@@ -228,6 +241,12 @@ namespace Omnifinity
 
 			// Update the omnideck users position/movement vector
 			private void UpdateOmnideckCharacterMovement() {
+				// if there is no connection, set velocity to zero and escape
+				if (!IsOmnitrackOnline ()) {
+					currMovementVector = Vector3.zero;
+					return;
+				}
+
 				currPosition = GetOmnideckCharacterPos();
 
 				// make sure the initial starting position does not result in a large jump
@@ -239,14 +258,17 @@ namespace Omnifinity
 					prevPos = currPosition;
 				}
 
-				// calculate movement vector since last pass
-				currMovementVector = (currPosition - prevPos) / Time.deltaTime;
+				// update movement vector (if we've received which fps to run at from Omnitrack)
+				if (omnitrackFps_TrackingData > 0)
+					currMovementVector = currPosition;
+				else
+					currMovementVector = Vector3.zero;
 
 				// cap the vector if it is very high (e.g. when omnitrack starts and headset goes from
-				// lying on the centerplate to being moved to e.g. 1.8m in one frame. With 60 fps a 
-				// threshold value of 0.05 means roughly a 3 m/s movement which is way too high.
-				float distance = Vector3.Distance (currPosition, prevPos);
-				if (distance > 0.05f) {
+				// lying on the centerplate to being moved
+				Vector3 vectorToCheck = new Vector3 (currMovementVector.x, 0, currMovementVector.z);
+				float vel = vectorToCheck.sqrMagnitude;
+				if (vel > 3.0) {
 					Debug.Log ("Received potential high initial movement speed, capping");
 					currMovementVector = Vector3.zero;
 				}
@@ -268,7 +290,7 @@ namespace Omnifinity
 
 			// returns the current movement vector of the omnideck user.
 			// Unit = [m/s]
-			public static Vector3 GetCurrentOmnideckCharacterMovementVector() {
+			public Vector3 GetCurrentOmnideckCharacterMovementVector() {
 				return currMovementVector;
 			}
 
@@ -333,9 +355,24 @@ namespace Omnifinity
 								Debug.Log ("Unsupported treadmill state");
 							break;
 						}
+
+						omnitrackFps_TrackingData = getTrackingDataFPS ();
+						if (omnitrackFps_TrackingData > 0) {
+							if (!hasReceivedTrackingDataFPS) {
+								hasReceivedTrackingDataFPS = true;
+								if (debugLevel != LogLevel.None)
+									Debug.Log ("Tracking data arrives at FPS: " + omnitrackFps_TrackingData);
+								StopCoroutine (trackingDataCoroutine);
+								trackingDataCoroutine = AcquireTrackingData (1.0f / (float)omnitrackFps_TrackingData);
+								StartCoroutine (trackingDataCoroutine);
+							}
+						} else {
+							Debug.Log ("Have not received tracking data FPS setting from Omnitrack yet");
+						}
 					} else {
 						if (debugLevel != LogLevel.None)
 							Debug.LogWarning ("Omnitrack connection offline");
+						currMovementVector = Vector3.zero;
 					}
 					yield return new WaitForSeconds(waitTime);
 				}
@@ -383,7 +420,7 @@ namespace Omnifinity
             // Code in dev, will enable users to disable/enable omnideck upon will 
             // ("forced roomscale")
             // ATTN: Subject to change
-			public  void DevRequestChangeOfOmnideckOperationMode()
+			public void DevRequestChangeOfOmnideckOperationMode()
             {
 				if (Input.GetMouseButtonDown (0)) {
 					if (IsOmnitrackOnline ()) {
