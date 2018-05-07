@@ -267,7 +267,7 @@ namespace Omnifinity
 				// cap the vector if it is very high (e.g. when omnitrack starts and headset goes from
 				// lying on the centerplate to being moved
 				Vector3 vectorToCheck = new Vector3 (currMovementVector.x, 0, currMovementVector.z);
-				float vel = vectorToCheck.sqrMagnitude;
+				float vel = vectorToCheck.magnitude;
 				if (vel > 3.0) {
 					Debug.Log ("Received potential high initial movement speed, capping");
 					currMovementVector = Vector3.zero;
