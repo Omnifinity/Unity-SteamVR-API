@@ -28,7 +28,8 @@ namespace Omnifinity
 		#region OmnitrackEnums
 		enum ETreadmillStatus {
 			Stopped = 1,
-			Running = 2
+			Running = 2,
+			Stopped_OnGameRequest = 3
 		};
 
 		enum EUserRequestOperateTreadmill {
@@ -38,6 +39,7 @@ namespace Omnifinity
 
 		enum ESystemReplyOperateTreadmill {
 			Result_NotAllowed = 1,
+			Result_NoConnection = 10,
 			Result_Disabled_Ok = 100,
 			Result_Enabled_Ok = 200
 		}
@@ -331,6 +333,17 @@ namespace Omnifinity
                 }
             }
 
+			// Get the state of the treadmill
+			public ETreadmillStatus GetTreadmillStatus() {
+				if (IsOmnitrackOnline ()) {
+					return (ETreadmillStatus)GetTreadmillState ();
+				} else {
+					if (debugLevel != LogLevel.None)
+						Debug.LogError ("Unable to check status, not connected to Omnitrack");
+					return ETreadmillStatus.Stopped;
+				}
+			}
+
 			// Periodically check the state of the Omnideck
 			IEnumerator CheckOmnideckState()
 			{
@@ -338,16 +351,21 @@ namespace Omnifinity
 				while (true)
 				{
 					if (IsOmnitrackOnline ()) {
-						ETreadmillStatus treadmillState = (ETreadmillStatus)GetTreadmillState ();
+						ETreadmillStatus treadmillState = GetTreadmillStatus();
 						switch (treadmillState) {
 						case ETreadmillStatus.Stopped:
 							if (debugLevel != LogLevel.None)
-								Debug.Log ("Treadmill stopped");
+								Debug.Log ("Treadmill stopped. User at center or outside of bounds.");
+							break;
+
+						case ETreadmillStatus.Stopped_OnGameRequest:
+							if (debugLevel != LogLevel.None)
+								Debug.Log ("Treadmill stopped on game request. This is room scale mode.");
 							break;
 
 						case ETreadmillStatus.Running:
 							if (debugLevel != LogLevel.None)
-								Debug.Log ("Treadmill running");
+								Debug.Log ("Treadmill running. User on active surface.");
 							break;
 
 						default:
@@ -437,7 +455,7 @@ namespace Omnifinity
 						}
 					} else {
 						if (debugLevel != LogLevel.None)
-						Debug.LogError ("Unable to send request, not connected to Omnitrack");
+							Debug.LogError ("Unable to send request, not connected to Omnitrack");
 					}
 				}
 
