@@ -1,3 +1,9 @@
+Omnifinity Unity API v1.17.7-Beta
+Uses:
+Unity 5.4.2f2
+SteamVR plugin for SteamVR Unity SDK v2.0.1
+
+
 Omnifinity Unity API v1.17.4-Beta
 Uses:
 Unity 5.4.2f2
