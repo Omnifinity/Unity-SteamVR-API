@@ -92,23 +92,23 @@ public class OmnitrackCharacterController_Example : MonoBehaviour {
 			return;
 		}
 
-		// calculate movement vector since last pass
+		// calculate movement vector since last pass [m/s]
 		Vector3 newMovementVector = omnitrackInterface.GetCurrentOmnideckCharacterMovementVector();
 
 		// disregard height changes
 		Vector3 currMovementVector = new Vector3 (newMovementVector.x, 0, newMovementVector.z);
 
-		// moves the character controller based on the movement vector
+		// first move the character controller based on the movement vector [m/s] ...
 		characterController.SimpleMove (currMovementVector);
 
-		// move the center of the capsule collider along with the head
+		// ...and secondly move the center of the capsule collider along with the head
 		// so that the user cannot move through walls
 		if (cameraTransform != null)
 			characterController.center = new Vector3 (cameraTransform.localPosition.x, 0, cameraTransform.localPosition.z);
 
 		// Call some prototype code
 		// ATTN: this can change anytime
-		PrototypeCodeSubjectToChange();
+		//PrototypeCodeSubjectToChange();
 	}
 	#endregion MonoBehaviorMethods
 
