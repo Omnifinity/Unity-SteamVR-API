@@ -478,6 +478,45 @@ namespace Omnifinity
 					}
 				}
             }
+
+			public void DevRequestStopTreadmill() {
+				if (IsOmnitrackOnline ()) {
+					ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStopTreadmill ();
+					switch (resOperateTreadmillRequest) {
+					case ESystemReplyOperateTreadmill.Result_NotAllowed:
+						if (debugLevel != LogLevel.None)
+							Debug.Log ("Not allowed to send user request to stop the Omnideck");
+						break;
+					case ESystemReplyOperateTreadmill.Result_Disabled_Ok:
+						if (debugLevel != LogLevel.None)
+							Debug.Log ("Sent user request to stop the Omnideck treadmill. Treadmill disabled.");
+						break;
+					}
+				} else {
+					if (debugLevel != LogLevel.None)
+						Debug.LogError ("Unable to send request, not connected to Omnitrack");
+				}
+			}
+
+			public void DevRequestStartTreadmill() {
+				if (IsOmnitrackOnline ()) {
+					ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStartTreadmill ();
+					switch (resOperateTreadmillRequest) {
+					case ESystemReplyOperateTreadmill.Result_NotAllowed:
+						if (debugLevel != LogLevel.None)
+							Debug.Log ("Not allowed to send user request to start the Omnideck");
+						break;
+					case ESystemReplyOperateTreadmill.Result_Enabled_Ok:
+						if (debugLevel != LogLevel.None)
+							Debug.Log ("Sent user request to start the Omnideck treadmill. Treadmill enabled.");
+						break;
+					}
+				} else {
+					if (debugLevel != LogLevel.None)
+						Debug.LogError ("Unable to send request, not connected to Omnitrack");
+				}
+			}
+
 			#endregion OmnitrackAPICode_Beta
         }
     }
