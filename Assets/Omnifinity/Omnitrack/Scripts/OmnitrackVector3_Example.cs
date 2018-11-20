@@ -83,7 +83,7 @@ public class OmnitrackVector3_Example : MonoBehaviour {
 
 		// Call some prototype code
 		// ATTN: this can change anytime
-		PrototypeCodeSubjectToChange();
+		//PrototypeCodeSubjectToChange();
 	}
 	#endregion MonoBehaviorMethods
 
