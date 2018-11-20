@@ -3,7 +3,7 @@ This is Omnifinity's 'Unity SteamVR API' (beta) making it possible for developer
 
 There are various ways to control a game/simulation using the Omnideck based on third party emulators and drivers. You can find an overview of these methods here: [Controlling applications using the Omnideck.pdf](https://github.com/Omnifinity/Unity-SteamVR-API/blob/master/Controlling%20applications%20using%20the%20Omnideck.pdf). 
 
-Please contact us if you would like to know more.
+Please contact us if you would like to know more about how to integrate.
 
  ### Emulating an Omnideck
 If you do not already own or have access to an Omnideck, you can emulate movement of a person walking on an Omnideck using a) the WASD keys on the keyboard or b) an XBOX 360 controller.
