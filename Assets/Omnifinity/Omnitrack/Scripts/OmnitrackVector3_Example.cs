@@ -26,12 +26,16 @@ public class OmnitrackVector3_Example : MonoBehaviour {
 	public enum LogLevel {None, Terse, Verbose}
 	public LogLevel debugLevel = LogLevel.Verbose;
 
+	// Assign platform that moves around
+	public 	GameObject playerSteamVR = null;
+
+	// Assign the actual camera eye
+	public 	GameObject cameraEyeSteamVR = null;
+
 	// our interface of interest
 	OmnitrackInterface omnitrackInterface;
 
-	// SteamVR controller manager
-	SteamVR_ControllerManager cameraRig = null;
-	SteamVR_Camera cameraEye = null;
+	// Camera eye transform for positioning of head collider
 	Transform cameraTransform = null;
 
 	#region MonoBehaviorMethods
@@ -48,26 +52,15 @@ public class OmnitrackVector3_Example : MonoBehaviour {
 			return;
 		}
 
-		// Initialize access to Steam VR
-		cameraRig = FindObjectOfType<SteamVR_ControllerManager>();
-		if (cameraRig) {
-			if (debugLevel != LogLevel.None)
-				Debug.Log("SteamVR CameraRig: " + cameraRig);
-		} else {
-			if (debugLevel != LogLevel.None)
-				Debug.LogError("Unable to find SteamVR_ControllerManager object");
-			return;
-		}
-
 		// get hold of the steamvr camera and its transform
-		cameraEye = FindObjectOfType<SteamVR_Camera>();
-		if (cameraEye) {
+		//cameraEye = FindObjectOfType<SteamVR_Camera>();
+		if (cameraEyeSteamVR) {
 			if (debugLevel != LogLevel.None)
-				Debug.Log("SteamVR Camera (eye): " + cameraEye);
-			cameraTransform = cameraEye.transform;
+				Debug.Log("SteamVR Camera (eye): " + cameraEyeSteamVR, cameraEyeSteamVR);
+			cameraTransform = cameraEyeSteamVR.transform;
 		} else {
 			if (debugLevel != LogLevel.None)
-				Debug.LogError("Unable to find SteamVR_Camera object");
+				Debug.LogError("Unable to find SteamVR Eye Camera object");
 			return;
 		}
 	}
@@ -90,7 +83,7 @@ public class OmnitrackVector3_Example : MonoBehaviour {
 
 		// Call some prototype code
 		// ATTN: this can change anytime
-		PrototypeCodeSubjectToChange();
+		//PrototypeCodeSubjectToChange();
 	}
 	#endregion MonoBehaviorMethods
 
