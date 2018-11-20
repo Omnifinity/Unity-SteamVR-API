@@ -97,15 +97,15 @@ namespace Omnifinity
 			[DllImport("OmnitrackAPI")]
 			private static extern double getTrackingDataFPS();
 
-            // Get X-position, Y and Z position
+            // Get X-, Y- and Z movement speed
             [DllImport("OmnitrackAPI")]
-            private static extern double getX();
+            private static extern double getVX();
 
             [DllImport("OmnitrackAPI")]
-            private static extern double getY();
+            private static extern double getVY();
 
             [DllImport("OmnitrackAPI")]
-            private static extern double getZ();
+            private static extern double getVZ();
 			#endregion OmnitrackAPIImports
 
 			#region OmnitrackAPIImports_Beta
@@ -238,7 +238,7 @@ namespace Omnifinity
 			// Get the position (accumulated over time) of the character walking on the omnideck
 			public static Vector3 GetOmnideckCharacterPos()
 			{
-				return new Vector3((float)getX(), (float)getY(), (float)getZ());
+				return new Vector3((float)getVX(), (float)getVY(), (float)getVZ());
 			}
 
 			// Update the omnideck users position/movement vector
