@@ -5,8 +5,12 @@ There are various ways to control a game/simulation using the Omnideck based on 
 
 Please contact us if you would like to know more.
 
-### Emulating an Omnideck
-If you do not already own or have access to an Omnideck, you can emulate movement of a person walking on an Omnideck using a) the WASD keys on the keyboard or b) an XBOX 360 controller. 
+ ### Emulating an Omnideck
+If you do not already own or have access to an Omnideck, you can emulate movement of a person walking on an Omnideck using a) the WASD keys on the keyboard or b) an XBOX 360 controller.
+
+If you press the "W" key the character will move along the +Z (forward) axis.
+
+If you press the "A" key the character will mgitkove along the -X (left) axis.
 
 ### Let us help you
 If you like to get help building support in your game or simulation for the Omnideck please contact us by visiting [http://omnifinity.se](http://omnifinity.se) and finding our contact details.
@@ -64,6 +68,11 @@ If you run the executable without any arguments you will see a usage example. Th
 ## Coordinate systems
 The physical orientation (rotation) of the calibrated playspace of the HTC Vive and the rotation of your game [CameraRig] should always be aligned. You should never rotate the [CameraRig] (or any character controller controlling the [CameraRig]). If you do change the rotation of the game objects the actual physical movement of the user will translate to movement in the wrong direction in the game - leading to disorientation. 
 
+For the person to move in the correct direction in the game the physical orientation (rotation) of the Omnideck platform/character controller/gameobject must be aligned with Unity's coordinate system.
+
+For information - by default - if you would add/drag the SteamVR [CameraRig] into a new scene its forward direction (+Z) is aligned with Unity's forward direction (+Z).
+
+Thus, when you add the Omnideck platform you should not rotate it or make it a child of a rotated gameobject. If you do this will lead to the user moving in the wrong direction (e.g. 90 degrees to the left instead of straight ahead).
 
 ## Building an executable
 Since our DLL is built for 64-bit you need to build for the x86_64 architecture in the build settings. Contact us if you do not want/can build a 64-bit version of your experience. 
