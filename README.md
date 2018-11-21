@@ -5,7 +5,10 @@ There are various ways to control a game/simulation using the Omnideck based on 
 
 Please contact us if you would like to know more about how to integrate.
 
- ### Emulating an Omnideck
+### Version notice
+This API v1.17.7-Beta has been tested on SteamVR plugin v1.2.0 and v2.0.1.
+
+### Emulating an Omnideck
 If you do not already own or have access to an Omnideck, you can emulate movement of a person walking on an Omnideck using a) the WASD keys on the keyboard or b) an XBOX 360 controller.
 
 If you press the "W" key the character will move along the +Z (forward) axis.
