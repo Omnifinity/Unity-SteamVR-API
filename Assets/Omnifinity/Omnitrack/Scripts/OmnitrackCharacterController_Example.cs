@@ -1,5 +1,5 @@
 ﻿/*
-   Copyright 2017-2018 MSE Omnifinity AB
+   Copyright 2017-2020 MSE Omnifinity AB
    The code below is a simple example of using a standard Unity CharacterController
    attached to the SteamVR CameraRig for moving the Omnideck user around based on
    position data arriving from Omnitrack.

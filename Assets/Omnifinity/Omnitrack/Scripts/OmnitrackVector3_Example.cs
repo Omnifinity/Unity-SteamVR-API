@@ -1,5 +1,5 @@
 ﻿/*
-   Copyright 2017-2018 MSE Omnifinity AB
+   Copyright 2017-2020 MSE Omnifinity AB
    The code below is a simple example of moving a transform based on 
    position data arriving from Omnitrack.
 
