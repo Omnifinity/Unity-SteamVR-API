@@ -1,5 +1,5 @@
 ﻿/*
-   Copyright 2017-2018 MSE Omnifinity AB
+   Copyright 2017-2020 MSE Omnifinity AB
    The code below is part of the Omnitrack Unity API
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,11 +48,11 @@ namespace Omnifinity
         class OmnitrackInterface: MonoBehaviour
         {
 
-			public enum LogLevel {None, TerseUserPositionAndVector, Verbose}
+			public enum LogLevel {None, TerseUserMovementVector, Verbose}
 			public LogLevel debugLevel = LogLevel.Verbose;
 
-			#region OmnitrackAPIImports
-			[DllImport("OmnitrackAPI")]
+            #region OmnitrackAPIImports
+            [DllImport("OmnitrackAPI")]
 			private static extern UInt16 GetAPIVersionMajor ();
 			[DllImport("OmnitrackAPI")]
 			private static extern UInt16 GetAPIVersionMinor ();
@@ -89,9 +89,9 @@ namespace Omnifinity
 			[DllImport("OmnitrackAPI")]
 			private static extern int GetTreadmillState();
 
-			// Send heart beat to Omnitrack and notify it which DLL version the game is using
+			// Send heart beat to Omnitrack and notify it which DLL version and platform this game is using
 			[DllImport("OmnitrackAPI")]
-			private static extern int SendHeartbeatToOmnitrack(UInt16 major, UInt16 minor, UInt16 patch);
+			private static extern int SendHeartbeatToOmnitrack(UInt16 major, UInt16 minor, UInt16 patch, UInt16 platform);
 
 			// Get the FPS of arriving tracking data
 			[DllImport("OmnitrackAPI")]
@@ -154,20 +154,22 @@ namespace Omnifinity
 			[DllImport("OmnitrackAPI")]
 			[return:MarshalAs(UnmanagedType.I1)]
 			private static extern bool IsAllowedToStopTreadmill();
-			#endregion OmnitrackAPIImports_Beta
+            #endregion OmnitrackAPIImports_Beta
 
-			#region OmnitrackVariables
+            #region OmnitrackVariables
+            // 1 == Unity. Do not edit.
+            private ushort API_Platform_Type = 1;
 
             // How often to receive motion velocity data from omnitrack.
             // ATTN: Subject to change.
             const float desiredFps_TrackingData = 75f;
 			double omnitrackFps_TrackingData = 0;
 
-			// Keep track of current and previous position to be able to calculate a movement vel
-			bool hasReceivedStartPosition = false;
-			static Vector3 currPosition;
+			// Keep track of current and previous velocity to be able to calculate a movement vel
+			bool hasReceivedStartVelocity = false;
+			static Vector3 currVelocity;
 			static Vector3 currMovementVector;
-			Vector3 prevPos;
+			Vector3 prevVelocity;
 
             // Various variables during development
 			// ATTN: Subject to change
@@ -235,8 +237,8 @@ namespace Omnifinity
 			#endregion MonoBehaviourMethods
 
 			#region OmnitrackAPIMethods
-			// Get the position (accumulated over time) of the character walking on the omnideck
-			public static Vector3 GetOmnideckCharacterPos()
+			// Get the current velocity of the person walking on the omnideck
+			public static Vector3 GetOmnideckCharacterVelocity()
 			{
 				return new Vector3((float)getVX(), (float)getVY(), (float)getVZ());
 			}
@@ -249,20 +251,20 @@ namespace Omnifinity
 					return;
 				}
 
-				currPosition = GetOmnideckCharacterPos();
+                currVelocity = GetOmnideckCharacterVelocity();
 
-				// make sure the initial starting position does not result in a large jump
-				if (!hasReceivedStartPosition) {
+				// make sure the initial starting velocity does not result in a large jump
+				if (!hasReceivedStartVelocity) {
 					if (debugLevel != LogLevel.None)
-						Debug.Log ("Resetting start position for calculation of the Omnideck character movement");
-					hasReceivedStartPosition = !hasReceivedStartPosition;
-					// set same previous and current position
-					prevPos = currPosition;
+						Debug.Log ("Resetting start velocity for calculation of the Omnideck character movement");
+                    hasReceivedStartVelocity = !hasReceivedStartVelocity;
+                    // set same previous and current position
+                    prevVelocity = currVelocity;
 				}
 
 				// update movement vector (if we've received which fps to run at from Omnitrack)
 				if (omnitrackFps_TrackingData > 0)
-					currMovementVector = currPosition;
+					currMovementVector = currVelocity;
 				else
 					currMovementVector = Vector3.zero;
 
@@ -275,19 +277,19 @@ namespace Omnifinity
 					currMovementVector = Vector3.zero;
 				}
 
-				// store current pos for next pass
-				prevPos = currPosition;
+                // store current velocity for next pass
+                prevVelocity = currVelocity;
 
-				if (debugLevel == LogLevel.TerseUserPositionAndVector ) {
-					Debug.Log ("User Position:" + currPosition);
+				if (debugLevel == LogLevel.TerseUserMovementVector ) {
 					Debug.Log ("User movementVector: " + currMovementVector);
 				}
 			}
 
-			// returns the current accumulated position of the omnideck user.
-			// Unit = [m]
-			public static Vector3 GetCurrentOmnideckCharacterPosition() {
-				return currPosition;
+            // returns the current accumulated position of the omnideck user.
+            // Unit = [m]
+            [System.Obsolete("This method has been deprecated.")]
+            public static Vector3 GetCurrentOmnideckCharacterPosition() {
+				return Vector3.zero;
 			}
 
 			// returns the current movement vector of the omnideck user.
@@ -320,7 +322,7 @@ namespace Omnifinity
                 {
 					if (IsOmnitrackOnline ())
                     {
-						SendHeartbeatToOmnitrack(GetAPIVersionMajor(), GetAPIVersionMinor(), GetAPIVersionPatch());
+						SendHeartbeatToOmnitrack(GetAPIVersionMajor(), GetAPIVersionMinor(), GetAPIVersionPatch(), API_Platform_Type);
 						if (debugLevel != LogLevel.None)
 							Debug.Log("Sent heartbeat to Omnitrack, using API v" + GetAPIVersionMajor().ToString () + "." + GetAPIVersionMinor().ToString () + "." + GetAPIVersionPatch().ToString ());
                     }
@@ -440,6 +442,9 @@ namespace Omnifinity
             // ATTN: Subject to change
 			public void DevRequestChangeOfOmnideckOperationMode()
             {
+                // escape the rest
+                return;
+
 				if (Input.GetMouseButtonDown (0)) {
 					if (IsOmnitrackOnline ()) {
 						ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStopTreadmill ();
@@ -479,43 +484,53 @@ namespace Omnifinity
 				}
             }
 
-			public void DevRequestStopTreadmill() {
-				if (IsOmnitrackOnline ()) {
-					ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStopTreadmill ();
-					switch (resOperateTreadmillRequest) {
-					case ESystemReplyOperateTreadmill.Result_NotAllowed:
-						if (debugLevel != LogLevel.None)
-							Debug.Log ("Not allowed to send user request to stop the Omnideck");
-						break;
-					case ESystemReplyOperateTreadmill.Result_Disabled_Ok:
-						if (debugLevel != LogLevel.None)
-							Debug.Log ("Sent user request to stop the Omnideck treadmill. Treadmill disabled.");
-						break;
-					}
-				} else {
-					if (debugLevel != LogLevel.None)
-						Debug.LogError ("Unable to send request, not connected to Omnitrack");
-				}
-			}
+            public void DevRequestStopTreadmill()
+            {
+                if (IsOmnitrackOnline())
+                {
+                    ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStopTreadmill();
+                    switch (resOperateTreadmillRequest)
+                    {
+                        case ESystemReplyOperateTreadmill.Result_NotAllowed:
+                            if (debugLevel != LogLevel.None)
+                                Debug.Log("Not allowed to send user request to stop the Omnideck");
+                            break;
+                        case ESystemReplyOperateTreadmill.Result_Disabled_Ok:
+                            if (debugLevel != LogLevel.None)
+                                Debug.Log("Sent user request to stop the Omnideck treadmill. Treadmill disabled.");
+                            break;
+                    }
+                }
+                else
+                {
+                    if (debugLevel != LogLevel.None)
+                        Debug.LogError("Unable to send request, not connected to Omnitrack");
+                }
+            }
 
-			public void DevRequestStartTreadmill() {
-				if (IsOmnitrackOnline ()) {
-					ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStartTreadmill ();
-					switch (resOperateTreadmillRequest) {
-					case ESystemReplyOperateTreadmill.Result_NotAllowed:
-						if (debugLevel != LogLevel.None)
-							Debug.Log ("Not allowed to send user request to start the Omnideck");
-						break;
-					case ESystemReplyOperateTreadmill.Result_Enabled_Ok:
-						if (debugLevel != LogLevel.None)
-							Debug.Log ("Sent user request to start the Omnideck treadmill. Treadmill enabled.");
-						break;
-					}
-				} else {
-					if (debugLevel != LogLevel.None)
-						Debug.LogError ("Unable to send request, not connected to Omnitrack");
-				}
-			}
+            public void DevRequestStartTreadmill()
+            {
+                if (IsOmnitrackOnline())
+                {
+                    ESystemReplyOperateTreadmill resOperateTreadmillRequest = UserRequestToStartTreadmill();
+                    switch (resOperateTreadmillRequest)
+                    {
+                        case ESystemReplyOperateTreadmill.Result_NotAllowed:
+                            if (debugLevel != LogLevel.None)
+                                Debug.Log("Not allowed to send user request to start the Omnideck");
+                            break;
+                        case ESystemReplyOperateTreadmill.Result_Enabled_Ok:
+                            if (debugLevel != LogLevel.None)
+                                Debug.Log("Sent user request to start the Omnideck treadmill. Treadmill enabled.");
+                            break;
+                    }
+                }
+                else
+                {
+                    if (debugLevel != LogLevel.None)
+                        Debug.LogError("Unable to send request, not connected to Omnitrack");
+                }
+            }
 
 			#endregion OmnitrackAPICode_Beta
         }
