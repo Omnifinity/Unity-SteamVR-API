@@ -35,7 +35,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 4000012289821152}
-  - 114: {fileID: 114000012010946020}
+  - 114: {fileID: 114000012058289396}
   - 114: {fileID: 114000012673557930}
   m_Layer: 0
   m_Name: OmnideckPlatform_Vector3
@@ -355,7 +355,7 @@ MonoBehaviour:
   - {x: -1.65, y: 0.01, z: -1.275}
   - {x: -1.65, y: 0.01, z: 1.275}
   - {x: 1.65, y: 0.01, z: 1.275}
---- !u!114 &114000012010946020
+--- !u!114 &114000012058289396
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -363,7 +363,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1000010792812080}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53ba725b9eab27745a86773ed592f3cd, type: 3}
+  m_Script: {fileID: 11500000, guid: c782522a22802b643be42b0d61c8115c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   debugLevel: 1
