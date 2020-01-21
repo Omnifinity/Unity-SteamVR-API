@@ -4,12 +4,12 @@ This is Omnifinity's 'Unity SteamVR API' (beta) making it possible for developer
 There are various ways to control a game/simulation using the Omnideck based on third party emulators and drivers. You can find an overview of these methods here: [Controlling applications using the Omnideck.pdf](https://github.com/Omnifinity/Unity-SteamVR-API/blob/master/Controlling%20applications%20using%20the%20Omnideck.pdf). 
 
 If you would like to implement "trackpad locomotion/smooth locomotion" using SteamVR and the HTC Vive trackpad button instead of our Unity API, please look here for an introduction:
-[https://medium.com/omnifinity/steamvr-omnideck-driver-2da32f79602d](https://medium.com/omnifinity/steamvr-omnideck-driver-2da32f79602d "The Omnideck OpenVR Treadmill device driver")
+[Configure SteamVR to work with the Omnideck treadmill](https://medium.com/omnifinity/configure-steamvr-to-work-with-the-omnideck-treadmill-84eb198d7a0e)
 
 Please contact us if you would like to know more about how to integrate.
 
 ### Version notice
-This API v1.17.7p1-Beta has been tested on SteamVR plugin v1.2.0 and v2.0.1. It has also been tested on Unity 5.4.2f2 and Unity 2018.3.0f2 with success. There should be no reason why it should not work with the latest version of Unity. If not, please contact us. 
+This API v1.17.8-Beta has been tested with SteamVR plugin v2.5 and Unity 5.4.2f2 with success. There should be no reason why it should not work with the latest version of Unity. If not, please contact us. 
 
 ### Emulating an Omnideck
 If you do not already own or have access to an Omnideck, you can emulate movement of a person walking on an Omnideck using a) the WASD keys on the keyboard or b) an XBOX 360 controller.
