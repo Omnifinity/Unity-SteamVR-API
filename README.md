@@ -9,6 +9,8 @@ If you would like to implement "trackpad locomotion/smooth locomotion" using Ste
 Please contact us if you would like to know more about how to integrate.
 
 ### Version notice
+The API v1.17.9-Beta has been tested with Unity 2021.3.16 with success.
+
 This API v1.17.8-Beta has been tested with SteamVR plugin v2.5 and Unity 5.4.2f2 with success. There should be no reason why it should not work with the latest version of Unity. If not, please contact us. 
 
 ### Emulating an Omnideck
