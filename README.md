@@ -1,4 +1,8 @@
-#  What is this?
+# Note
+2023-07-07: This repository is soon being deprecated in favour of a new implementation and repository. The new repo is in an alpha-state but it can be used for testing. The new repository is based on simple installation via the Unity Package Manager. 
+https://github.com/Omnifinity/Unity-Omnideck-API
+
+##  What is this?
 This is Omnifinity's 'Unity SteamVR API' (beta) making it possible for developers to use the HTC Vive together with the Omnideck. The Omnideck is basically an analog joystick that feeds a game/simulation with a 3D vector representing how the character/camera controller should move around. 
 
 There are various ways to control a game/simulation using the Omnideck based on third party emulators and drivers. You can find an overview of these methods here: [Controlling applications using the Omnideck.pdf](https://github.com/Omnifinity/Unity-SteamVR-API/blob/master/Controlling%20applications%20using%20the%20Omnideck.pdf). 
