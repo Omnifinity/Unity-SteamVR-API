@@ -1,7 +1,7 @@
 # Note
-2023-07-07
+2023-10-13
 
-This repository is soon being deprecated in favour of a new implementation and repository. The new repo is in an alpha-state but it can be used for testing. The new repository is based on simple installation via the Unity Package Manager. 
+This repository is deprecated in favour of a new implementation and repository. The new repo is in an alpha-state but it can be used for testing. The new repository is based on simple installation via the Unity Package Manager. 
 
 https://github.com/Omnifinity/Unity-Omnideck-API
 
